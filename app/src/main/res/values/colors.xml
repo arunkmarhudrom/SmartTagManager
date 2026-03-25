@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+
+    <color name="colorPrimary">#1E66FF</color>
+    <color name="colorAccent">#27C1FF</color>
+    <color name="status_bar">#1440A8</color>
+    <color name="white">#FFFFFF</color>
+    <color name="soft_hint_color">#CDE2FF</color>
+    <color name="underline_color">#8FB8FF</color>
+    <color name="icon_color">#BFE8FF</color>
+
+
+    <!-- Soft white (used when not focused) -->
+    <color name="soft_white">#B3FFFFFF</color>
+    <color name="very_soft_white">#4DFFFFFF</color>
+    <color name="hint_unfocused">#99FFFFFF</color>
+
+    <!-- Bright blue (same as your shield circle) -->
+    <color name="accent_blue">#00B0F0</color>
+
+    <color name="white_60">#99FFFFFF</color>
+    <color name="et_border">#80FFFFFF</color>
+    <color name="et_border_focused">#FFFFFF</color>
+    <color name="blue_600">#1E88E5</color>
+    <color name="red_600">#E53935</color>
+    <color name="divider">#E0E0E0</color>
+
+    <color name="light_chip_bg">#F0F7FF</color>
+    <color name="blue_primary">#0A53E4</color>
+    <color name="transparent">#00FFFFFF</color>
+
+
+    <color name="signal_green">#2ECC71</color>
+    <color name="signal_yellow">#F1C40F</color>
+    <color name="signal_red">#DC0A30</color>
+
+    <color name="blue_900">#0B1C52</color>
+    <color name="blue_700">#1C3FA7</color>
+    <color name="blue_300">#72A8FF</color>
+
+
+
+</resources>

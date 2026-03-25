@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.grf.dashboard.DashboardFragment"
+        android:label="Dashboard">
+
+        <!-- existing module actions -->
+        <action
+            android:id="@+id/action_dashboard_to_moduleA"
+            app:destination="@id/moduleAFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_moduleB"
+            app:destination="@id/moduleBFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_moduleC"
+            app:destination="@id/moduleCFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_moduleD"
+            app:destination="@id/moduleDFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_moduleE"
+            app:destination="@id/moduleEFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_moduleF"
+            app:destination="@id/moduleFFragment" />
+
+        <!-- NEW: action from dashboard -> reports -->
+        <action
+            android:id="@+id/action_dashboard_to_reportFragment"
+            app:destination="@id/reportFragment" />
+
+        <!-- NEW: action from dashboard -> manage task -->
+        <action
+            android:id="@+id/action_dashboard_to_manageTaskFragment"
+            app:destination="@id/manageTaskFragment">
+
+        </action>
+    </fragment>
+
+    <!-- existing module fragment declarations -->
+    <fragment
+        android:id="@+id/moduleAFragment"
+        android:name="com.grf.dashboard.ModuleAFragment"
+        android:label="Module A">
+        <action
+            android:id="@+id/action_moduleA_to_scanFragment"
+            app:destination="@id/scanFragment" >
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/moduleBFragment"
+        android:name="com.grf.dashboard.ModuleBFragment"
+        android:label="Module B">
+        <action
+            android:id="@+id/action_moduleB_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/moduleCFragment"
+        android:name="com.grf.dashboard.ModuleCFragment"
+        android:label="Module C">
+        <action
+            android:id="@+id/action_moduleC_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/moduleDFragment"
+        android:name="com.grf.dashboard.ModuleDFragment"
+        android:label="Module D">
+        <action
+            android:id="@+id/action_moduleD_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/moduleEFragment"
+        android:name="com.grf.dashboard.ModuleEFragment"
+        android:label="Module E">
+        <action
+            android:id="@+id/action_moduleE_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/moduleFFragment"
+        android:name="com.grf.dashboard.ModuleFFragment"
+        android:label="Module F">
+        <action
+            android:id="@+id/action_moduleF_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
+
+    <!-- NEW: reportFragment declaration -->
+    <fragment
+        android:id="@+id/reportFragment"
+        android:name="com.grf.dashboard.ReportFragment"
+        android:label="Reports" />
+
+    <!-- NEW: manageTaskFragment declaration -->
+    <fragment
+        android:id="@+id/manageTaskFragment"
+        android:name="com.grf.dashboard.ManageTaskFragment"
+        android:label="Manage Tasks">
+
+        <!-- NEW: action from dashboard -> new task -->
+        <action
+            android:id="@+id/action_dashboard_to_newTaskFragment"
+            app:destination="@id/newTaskFragment" />
+    </fragment>
+
+    <!-- NEW: newTaskFragment declaration -->
+    <fragment
+        android:id="@+id/newTaskFragment"
+        android:name="com.grf.dashboard.NewTaskFragment"
+        android:label="New Tasks">
+        <action
+            android:id="@+id/action_newTask_to_searchFragment"
+            app:destination="@+id/tagSearchFragment" />
+
+        <action
+            android:id="@+id/action_newTask_to_tagSelectionFragment"
+            app:destination="@+id/tagSelectionFragment" />
+    </fragment>
+
+    <!-- NEW: scanFragment declaration -->
+    <fragment
+        android:id="@+id/scanFragment"
+        android:name="com.grf.dashboard.ScanFragment"
+        android:label="Scanning Fragment" >
+        <action
+            android:id="@+id/action_scan_to_settingFragment"
+            app:destination="@id/settingFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/tagSearchFragment"
+        android:name="com.grf.dashboard.TagSearchFragment"
+        android:label="Search Tag Fragment" />
+
+    <fragment
+        android:id="@+id/tagSelectionFragment"
+        android:name="com.grf.dashboard.TagSelectionFragment"
+        android:label="Search Tag Fragment" />
+    <fragment
+        android:id="@+id/settingFragment"
+        android:name="com.grf.dashboard.SettingFragment"
+        android:label="setting Fragment" />
+</navigation>

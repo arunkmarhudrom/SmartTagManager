@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2dp"
+    card_view:cardCornerRadius="10dp"
+    card_view:cardElevation="2dp"
+    card_view:cardUseCompatPadding="false">
+
+    <!-- ROOT: horizontal two-column layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/taskDetailLayout"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <!-- LEFT CONTENT (70%) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="7"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTaskTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Task title"
+                android:textColor="#000000"
+                android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvTagCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="2dp"
+                android:text="X tags configured"
+                android:textColor="#666666"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- RIGHT CONTENT (30%) -> contains TWO sections (toggle visibility) -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:foregroundGravity="right|center_vertical"
+            android:paddingStart="8dp">
+
+            <!-- SECTION A: Edit + Delete -->
+            <LinearLayout
+                android:id="@+id/layoutActions"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/ivEdit"
+                    android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_pen"
+                android:padding="6dp"
+                android:contentDescription="Edit"
+                card_view:tint="#2B7BFF" />
+
+                <ImageView
+                    android:id="@+id/ivDelete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_delete"
+                    android:padding="6dp"
+                    android:contentDescription="Delete"
+                    card_view:tint="#FF3B30" />
+            </LinearLayout>
+
+            <!-- SECTION B: Chevron (for item view) -->
+            <LinearLayout
+                android:id="@+id/layoutChevron"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/ivChevron"
+                    android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/chev_right"
+                android:contentDescription="Open"
+                android:padding="6dp"
+                card_view:tint="#3D55E6" />
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

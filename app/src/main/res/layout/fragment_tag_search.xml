@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- HEADER WITH BACK BUTTON + MODULE TITLE -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="12dp">
+
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="Back"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tvModuleTitleB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Search Tag"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Spacer or other content area (you can add RecyclerView below if needed) -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- YOUR PROVIDED INPUT ROW (unchanged) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/textInputLayoutTags"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/green_edittext_border"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="6dp"
+                        app:boxBackgroundMode="none"
+                        app:endIconMode="clear_text"
+                        app:hintEnabled="false">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/autoCompleteTags"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:dropDownWidth="match_parent"
+                            android:dropDownHeight="match_parent"
+                            android:dropDownVerticalOffset="4dp"
+                            android:ellipsize="end"
+                            android:hint="Scan or select Tag ID"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:singleLine="true"
+                            android:textColor="@android:color/black" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ImageButton
+                        android:id="@+id/btnAddTag"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_export_button"
+                        android:contentDescription="Upload Tag"
+                        android:padding="10dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_upload" />
+                </LinearLayout>
+
+                <!-- Add other UI components below as needed -->
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</FrameLayout>

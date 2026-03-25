@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootNewTask"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:padding="20dp"
+    tools:context="com.grf.dashboard.NewTaskFragment">
+
+    <!-- Make the form scrollable so long lists / dropdowns don't overlap the Save button -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollRoot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingBottom="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- HEADER -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingBottom="12dp">
+
+                <ImageView
+                    android:id="@+id/ivBack"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:contentDescription="Back"
+                    android:src="@drawable/ic_back_arrow"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="New Task"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="5dp">
+
+                <!-- Plus circle + title -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:background="@drawable/circle_blue_bg"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:id="@+id/ivPlus"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Add"
+                            android:src="@drawable/ic_add" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Create New Task"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp" />
+
+                <!-- Labels -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Task Name"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <!-- Input -->
+                <EditText
+                    android:id="@+id/etTaskName"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/edit_text_rounded_bg"
+                    android:gravity="center_vertical"
+                    android:hint="Task_YYYY-MM-DD_hh:mm:ss"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:textCursorDrawable="@null" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Auto-generated based on current time if not specified"
+                    android:textColor="#D30707"
+                    android:textSize="14sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Add RFID Tags"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <!-- RFID Input row (unchanged IDs) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/textInputLayoutTags"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/green_edittext_border"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="6dp"
+                        app:boxBackgroundMode="none"
+                        app:endIconMode="clear_text"
+                        app:hintEnabled="false">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/autoCompleteTags"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:ellipsize="end"
+                            android:focusable="false"
+                            android:hint="Scan or select Tag ID"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:singleLine="true"
+                            android:textColor="@android:color/black" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+
+                </LinearLayout>
+
+
+                <!-- small spacer -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp" />
+
+                <!-- SAVE button (kept inline as in your original) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddTag"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/bg_btn_upload"
+                    app:backgroundTint="@null"
+                    android:text="Upload File"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    app:icon="@drawable/ic_upload"
+                    app:iconTint="@android:color/white"
+                    app:iconGravity="textStart"
+                    app:iconPadding="12dp" />
+
+
+
+
+<!--                <com.google.android.material.button.MaterialButton-->
+<!--                    android:id="@+id/btnSaveTask"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="44dp"-->
+<!--                    android:layout_marginTop="10sp"-->
+<!--                    android:background="@drawable/bg_btn_upload"-->
+<!--                    android:drawablePadding="8dp"-->
+<!--                    android:text="Save Task"-->
+<!--                    android:textAllCaps="false"-->
+<!--                    android:textColor="@android:color/white" />-->
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveTask"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/bg_btn_save"
+                    app:backgroundTint="@null"
+                    android:text="Save Task"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    app:icon="@drawable/ic_save"
+                    app:iconTint="@android:color/white"
+                    app:iconGravity="textStart"
+                    app:iconPadding="12dp" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</FrameLayout>

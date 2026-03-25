@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:orientation="vertical"
+    android:padding="20dp">
+    <!-- HEADER: Back arrow + Title (left) + Button with icon on right (same line) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/transparent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="12dp">
+
+        <!-- Back Arrow -->
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back_arrow"
+            app:tint="@color/white" />
+
+        <!-- Title - takes all available space -->
+        <TextView
+            android:id="@+id/tvHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="Reports"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnExport"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_export_button"
+            android:contentDescription="More options"
+
+            android:text="Export CSV"
+            app:drawableTint="@color/white" />
+
+    </LinearLayout>
+
+
+    <!-- MODULES SECTION (fixed, not scrollable) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvModules"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false"
+        android:overScrollMode="never" />
+
+    <!-- small spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="12dp" />
+
+
+    <!-- TAGS LIST: bordered container with the RecyclerView that fills remaining space and scrolls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/scanned_tag_section_border_bg"
+        android:orientation="vertical"
+        android:padding="2dp">
+        <!-- Scanned Tags header -->
+        <TextView
+            android:id="@+id/tvScannedTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:paddingStart="2sp"
+            android:text="Scanned Tags (20)"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="2dp"
+            android:background="#90A6CE" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvScannedTags"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="always" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,29 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SmartTagManager" parent="Theme.Material3.Light.NoActionBar">
+        <!-- primary/app colors -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+
+        <!-- status bar color -->
+        <item name="android:statusBarColor">@color/status_bar</item>
+
+        <!-- Material components defaults -->
+        <item name="materialButtonStyle">@style/Widget.MaterialComponents.Button</item>
+        <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox</item>
+
+        <!-- no action bar -->
+        <item name="windowActionBar">false</item>
+        <item name="android:windowFullscreen">false</item>
+
+        <!-- Set cursor via drawable (android expects a drawable resource) -->
+        <item name="android:textCursorDrawable">@drawable/cursor_white</item>
+
+        <!-- Material3: alternative/extra attribute — some libs respect this -->
+        <item name="cursorColor">@color/white</item>
+
+        <!-- If Material widgets are being tinted by colorControlActivated -->
+        <item name="colorControlActivated">@color/white</item>
+    </style>
+</resources>

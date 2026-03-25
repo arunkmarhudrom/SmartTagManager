@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- tile background (same blue as screenshot) -->
+    <solid android:color="#1D49DA" />
+
+    <!-- border (light neon cyan like highlight glow) -->
+    <stroke
+        android:width="1dp"
+        android:color="#40C8FF" />
+
+    <!-- same rounding -->
+    <corners android:radius="8dp" />
+</shape>

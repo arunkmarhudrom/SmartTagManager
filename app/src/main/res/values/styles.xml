@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom OutlinedBox style with blue focus -->
+    <style name="MyTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+
+        <!-- Corner radius -->
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <!-- Optional: remove underline ripple effect if you don't want it -->
+        <item name="boxBackgroundMode">outline</item>
+    </style>
+
+
+    <!-- styles.xml -->
+    <style name="TagChip">
+        <item name="android:background">@drawable/tag_chip_bg</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">#0A53E4</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+
+    <style name="SlimChipStyle" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="chipMinHeight">20dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+
+
+
+
+</resources>

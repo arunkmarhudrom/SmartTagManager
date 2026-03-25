@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#C9D3E4" />        <!-- keep it consistent with your app's blue if needed -->
+    <corners android:radius="0dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#90A6CE" />  <!-- subtle light border -->
+    <!-- inner padding effect can be simulated by using padding in the container (we did android:padding="8dp") -->
+</shape>

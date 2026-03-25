@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2dp"
+    card:cardCornerRadius="10dp"
+    card:cardElevation="0dp"
+    card:cardUseCompatPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_module_item_inner"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="4dp"
+        android:paddingTop="4dp"
+        android:paddingRight="4dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:id="@+id/tvModuleTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zone A"
+            android:textColor="#ffff"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvModuleCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="5"
+            android:textColor="#40E0FF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvModuleSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="5"
+            android:textColor="#40E0FF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

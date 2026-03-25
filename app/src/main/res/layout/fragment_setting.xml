@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- HEADER WITH BACK BUTTON + TITLE -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="12dp">
+
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="Back"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tvModuleTitleA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Setting"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- SETTINGS CARD -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_card_setting"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- TITLE -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="10dp"
+                android:text="RSSI Signal Settings"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Min RSSI -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="5dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Min RSSI (dBm) weak-signal"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <EditText
+                    android:id="@+id/etMinDbm"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/edit_text_bg"
+                    android:gravity="center"
+                    android:inputType="numberSigned"
+                    android:text="-80"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <!-- Max RSSI -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Max RSSI (dBm) strong-signal"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <EditText
+                    android:id="@+id/etMaxDbm"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/edit_text_bg"
+                    android:gravity="center"
+                    android:inputType="numberSigned"
+                    android:text="-40"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <!-- Green Threshold -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Green Above (%)"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <EditText
+                    android:id="@+id/etGreenThreshold"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/edit_text_bg"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:text="65"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <!-- Yellow Threshold -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Yellow Above (%)"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <EditText
+                    android:id="@+id/etYellowThreshold"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/edit_text_bg"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:text="40"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <!-- SAVE BUTTON -->
+            <Button
+                android:id="@+id/btnSaveRssiSettings"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_btn_save"
+                android:text="Save Settings"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>
