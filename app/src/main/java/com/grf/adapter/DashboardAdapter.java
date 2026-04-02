@@ -18,7 +18,7 @@ import java.util.List;
 
 public class DashboardAdapter extends RecyclerView.Adapter<DashboardAdapter.VH> {
 
-    public interface OnTileClick { void onClick(int actionId); }
+    public interface OnTileClick { void onClick(int position); }
 
     private final List<ModuleItem> items;
     private final OnTileClick listener;
@@ -79,7 +79,7 @@ public class DashboardAdapter extends RecyclerView.Adapter<DashboardAdapter.VH> 
             // Click handler
             holder.card.setOnClickListener(v -> {
                 try {
-                    listener.onClick(item.actionId);
+                    listener.onClick(position);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

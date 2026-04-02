@@ -791,7 +791,7 @@ public class NewTaskFragment extends Fragment {
                             "",             // moduleId
                             0,              // rssValue
                             0,              // taskComplete
-                            dateTime        // dateTime
+                            dateTime ,new ArrayList<>()       // dateTime
                     ));
                 }
 
@@ -866,7 +866,7 @@ public class NewTaskFragment extends Fragment {
                         "Z1",
                         "A",
                         0,
-                        0, ModuleViewModel.getDateTime()
+                        0, ModuleViewModel.getDateTime(),new ArrayList<>()
                 );
 
                 long id = taskDbHelper.insertTask(t);

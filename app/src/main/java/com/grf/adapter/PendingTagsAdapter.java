@@ -45,22 +45,17 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
 
     public interface Listener {
         void onItemClicked(PendingTag tag);
-
-        void onItemChecked(PendingTag tag); // optional
+        void onItemChecked(PendingTag tag);
     }
 
     private final Context context;
     private final List<PendingTag> items;
     private final Listener listener;
 
-    private final Object itemsLock = new Object();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-
     public PendingTagsAdapter(Context context, List<PendingTag> items, Listener listener) {
         this.context = context;
         this.items = items;
         this.listener = listener;
-        // Tell RecyclerView item IDs are stable (we override getItemId)
         setHasStableIds(true);
     }
 
@@ -72,41 +67,60 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
             return new VH(v);
         } catch (Throwable t) {
             t.printStackTrace();
-            // fallback empty view holder
             View v = new View(context);
             v.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
             return new VH(v);
         }
     }
 
+    // 🔥 PARTIAL UPDATE SUPPORT
+    @Override
+    public void onBindViewHolder(@NonNull VH holder, int position, @NonNull List<Object> payloads) {
+        try {
+            if (!payloads.isEmpty()) {
+                PendingTag tag = items.get(position);
+                updateSignalOnly(holder, tag);
+                return;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
+        super.onBindViewHolder(holder, position, payloads);
+    }
+
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         try {
-            PendingTag tag = null;
-            synchronized (itemsLock) {
-                if (position >= 0 && position < items.size()) {
-                    tag = items.get(position);
-                }
-            }
-            if (tag == null) {
-                // defensive: hide content if item not available
-                holder.itemView.setVisibility(GONE);
-                return;
-            } else {
-                holder.itemView.setVisibility(View.VISIBLE);
-            }
+            if (position < 0 || position >= items.size()) return;
 
-            // left side
+            PendingTag tag = items.get(position);
+            if (tag == null) return;
+
             holder.tvTagId.setText(tag.getToteId());
             holder.tvTagSubtitle.setText("Tap to confirm scan");
 
+            updateSignalOnly(holder, tag);
+
+            holder.itemView.setOnClickListener(v -> handleClick(holder));
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    // 🔥 ONLY UPDATE SIGNAL PART (FAST)
+    private void updateSignalOnly(VH holder, PendingTag tag) {
+        try {
             int percent = tag.getSignalPercent();
 
             holder.tvSignalPercent.setText(percent + "% (" + tag.getRssi() + " dbms)");
-            holder.progressSignal.setProgress(percent);
 
-            // choose tint color based on percent (use ContextCompat for compatibility)
+            if (holder.progressSignal.getProgress() != percent) {
+                holder.progressSignal.setProgress(percent);
+            }
+
             int tintColor;
             if (percent >= ModuleViewModel.greenTh) {
                 tintColor = ContextCompat.getColor(context, R.color.signal_green);
@@ -116,119 +130,55 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
                 tintColor = ContextCompat.getColor(context, R.color.signal_red);
             }
 
-            // Animate progress change
-            // animated
-            holder.progressSignal.getProgressDrawable().setColorFilter(tintColor, android.graphics.PorterDuff.Mode.SRC_IN);
+            holder.progressSignal.getProgressDrawable()
+                    .setColorFilter(tintColor, android.graphics.PorterDuff.Mode.SRC_IN);
 
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
-            // ---------- click listener: read current item/position at click-time ----------
-            holder.itemView.setOnClickListener(v -> {
-                try {
-                    int posAtClick = holder.getBindingAdapterPosition();
-                    if (posAtClick == RecyclerView.NO_POSITION) return;
+    private void handleClick(VH holder) {
+        try {
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
 
-                    PendingTag current;
-                    synchronized (itemsLock) {
-                        if (posAtClick >= 0 && posAtClick < items.size()) {
-                            current = items.get(posAtClick);
-                        } else {
-                            return;
-                        }
-                    }
+            PendingTag tag = items.get(pos);
+            if (tag == null) return;
 
-                    // Use the snapshot percent to avoid stale UI mutation from recycled holder
-                    final int snapshotPercent = current.getSignalPercent();
+            if (tag.getSignalPercent() <= 60) {
 
-                    if (current.getSignalPercent() <= 60) {
-                        // show popup. Because popup is async, re-check position when user confirms.
-                        PopupUtils.showCustomYesNoDialog(
-                                v.getContext(),
-                                "Tag Confirmation ?",
-                                "Are you sure to confirm Tag?",
-                                new PopupUtils.PopupCallback() {
-                                    @Override
-                                    public void onYes() {
-                                        try {
-                                            int posAtConfirm = holder.getBindingAdapterPosition();
-                                            PendingTag confirmedTag;
-                                            synchronized (itemsLock) {
-                                                if (posAtConfirm != RecyclerView.NO_POSITION && posAtConfirm < items.size()) {
-                                                    confirmedTag = items.get(posAtConfirm);
-                                                } else {
-                                                    confirmedTag = current;
-                                                }
-                                                // mark confirmed copy in model
-                                                confirmedTag.setSignalPercent(snapshotPercent);
-                                            }
-
-                                            if (listener != null)
-                                                listener.onItemClicked(confirmedTag);
-
-                                            // only update the holder's views if the holder still represents the same item
-                                            if (posAtConfirm != RecyclerView.NO_POSITION && posAtConfirm == posAtClick) {
-                                                int semiGreen = Color.parseColor("#BE58EF86");
-                                                holder.tagDetailLayout.setBackgroundColor(semiGreen);
-                                                holder.itemView.setEnabled(false);
-                                            } else {
-                                                if (posAtConfirm != RecyclerView.NO_POSITION) {
-                                                    // notify the changed position to refresh UI
-                                                    mainHandler.post(() -> {
-                                                        try {
-                                                            notifyItemChanged(posAtConfirm);
-                                                        } catch (Throwable ignore) {
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        } catch (Throwable ignore) {
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onNo() {
-                                        // no-op
-                                    }
-
-                                    @Override
-                                    public void onCLose() {
-                                        // no-op
-                                    }
-
-
-                                }
-                        );
-
-                    } else { // immediate confirm branch (no popup)
-                        int posNow = holder.getBindingAdapterPosition();
-                        PendingTag itemNow;
-                        synchronized (itemsLock) {
-                            if (posNow != RecyclerView.NO_POSITION && posNow < items.size()) {
-                                itemNow = items.get(posNow);
-                            } else {
-                                itemNow = current;
-                            }
-                        }
-
-                        if (listener != null) listener.onItemClicked(itemNow);
-
-                        if (posNow != RecyclerView.NO_POSITION && posNow == posAtClick) {
-                            int semiGreen = Color.parseColor("#BE58EF86");
-                            holder.tagDetailLayout.setBackgroundColor(semiGreen);
-                            holder.itemView.setEnabled(false);
-                        } else if (posNow != RecyclerView.NO_POSITION) {
-                            final int updatePos = posNow;
-                            mainHandler.post(() -> {
+                PopupUtils.showCustomYesNoDialog(
+                        holder.itemView.getContext(),
+                        "Tag Confirmation ?",
+                        "Are you sure to confirm Tag?",
+                        new PopupUtils.PopupCallback() {
+                            @Override
+                            public void onYes() {
                                 try {
-                                    notifyItemChanged(updatePos);
-                                } catch (Throwable ignore) {
-                                }
-                            });
+                                    if (listener != null) listener.onItemClicked(tag);
+                                    applyConfirmedUI(holder);
+                                } catch (Throwable ignored) {}
+                            }
+                            public void onNo() {}
+                            public void onCLose() {}
                         }
-                    }
-                } catch (Throwable ignore) {
-                }
-            });
+                );
 
+            } else {
+                if (listener != null) listener.onItemClicked(tag);
+                applyConfirmedUI(holder);
+            }
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private void applyConfirmedUI(VH holder) {
+        try {
+            holder.tagDetailLayout.setBackgroundColor(Color.parseColor("#BE58EF86"));
+            holder.itemView.setEnabled(false);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -236,32 +186,21 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
 
     @Override
     public int getItemCount() {
-        synchronized (itemsLock) {
-            return items == null ? 0 : items.size();
-        }
+        return items == null ? 0 : items.size();
     }
-
-
-
 
     @Override
     public long getItemId(int position) {
-        synchronized (itemsLock) {
-            if (position >= 0 && position < items.size()) {
-                String tagId = items.get(position).getTagId();
-                if (tagId != null) {
-                    return tagId.hashCode(); // Stable and fast
-                }
-            }
-            return RecyclerView.NO_ID;
+        if (position >= 0 && position < items.size()) {
+            String tagId = items.get(position).getTagId();
+            if (tagId != null) return tagId.hashCode();
         }
+        return RecyclerView.NO_ID;
     }
 
     static class VH extends RecyclerView.ViewHolder {
         ImageView ivTagIcon;
-        TextView tvTagId;
-        TextView tvTagSubtitle;
-        TextView tvSignalPercent;
+        TextView tvTagId, tvTagSubtitle, tvSignalPercent;
         ProgressBar progressSignal;
         LinearLayout tagDetailLayout;
 

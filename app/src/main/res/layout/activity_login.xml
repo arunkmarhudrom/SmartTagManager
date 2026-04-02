@@ -32,6 +32,7 @@
             android:paddingEnd="20dp"
             android:paddingBottom="20dp">
 
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/shield_circle"
                 android:layout_width="64dp"
@@ -49,20 +50,34 @@
                     android:layout_gravity="center"
                     android:src="@drawable/ice_shield"
                     app:tint="@android:color/white" />
+
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/deviceID"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Smart Tag Manager"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/shield_circle" />
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="6dp"
                 android:text="RFID Scanner"
                 android:textColor="@android:color/white"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/shield_circle" />
+                app:layout_constraintTop_toBottomOf="@id/deviceID" />
 
             <TextView
                 android:id="@+id/subtitle"
@@ -74,6 +89,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/title" />
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/usernameLayout"
@@ -102,10 +118,10 @@
                     android:background="@drawable/edit_text_bg"
                     android:drawableStart="@drawable/ic_user"
                     android:drawablePadding="4dp"
-                    android:text="Admin"
                     android:inputType="textEmailAddress"
-                    android:textColor="@color/white"
                     android:paddingStart="10dp"
+                    android:text="prasun"
+                    android:textColor="@color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/labelUsername" />
@@ -138,10 +154,10 @@
                     android:background="@drawable/edit_text_bg"
                     android:drawableStart="@drawable/ic_lock"
                     android:drawablePadding="4dp"
-                    android:text="admin"
                     android:inputType="textPassword"
-                    android:textColor="@color/white"
                     android:paddingStart="10dp"
+                    android:text="prasun@321"
+                    android:textColor="@color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/labelPassword" />

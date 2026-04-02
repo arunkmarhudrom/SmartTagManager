@@ -1,21 +1,88 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+#############################################
+# 🔐 GENERAL
+#############################################
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes Exceptions
+-keepattributes InnerClasses
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+#############################################
+# 🚫 IGNORE MISSING CLASSES (CRITICAL)
+#############################################
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-dontwarn android.os.ServiceManager
+-dontwarn org.apache.batik.**
+-dontwarn org.osgi.framework.**
+-dontwarn org.apache.logging.log4j.**
+-dontwarn javax.annotation.**
+-dontwarn kotlin.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+
+#############################################
+# 📦 GSON (MODELS)
+#############################################
+
+-keep class com.grf.model.** { *; }
+
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+#############################################
+# 🌐 RETROFIT
+#############################################
+
+-keep interface com.grf.api.** { *; }
+
+# Retrofit internal safety
+-keep interface retrofit2.** { *; }
+-keep class retrofit2.** { *; }
+
+#############################################
+# 🧬 ANDROIDX
+#############################################
+
+-keep class androidx.lifecycle.** { *; }
+-keep class androidx.navigation.** { *; }
+
+#############################################
+# 📊 APACHE POI
+#############################################
+
+-keep class org.apache.poi.** { *; }
+
+#############################################
+# 📄 OPENCSV
+#############################################
+
+-keep class com.opencsv.** { *; }
+
+#############################################
+# 📦 LOCAL SDKs (VERY IMPORTANT 🔥)
+#############################################
+
+-keep class com.nlscan.** { *; }
+-keep class com.rfid.** { *; }
+-keep class com.device.** { *; }
+
+#############################################
+# 🧾 REMOVE LOGS (RELEASE CLEANUP)
+#############################################
+
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
+
+#############################################
+# 🛡️ SAFETY FALLBACK (ONLY IF CRASHES)
+#############################################
+
+# Uncomment ONLY if something breaks
+# -keep class com.grf.** { *; }

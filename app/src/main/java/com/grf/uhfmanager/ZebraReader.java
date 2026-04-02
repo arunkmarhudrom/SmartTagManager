@@ -10,6 +10,7 @@ import com.grf.utils.ProgressUtil;
 import com.zebra.rfid.api3.ACCESS_OPERATION_CODE;
 import com.zebra.rfid.api3.ACCESS_OPERATION_STATUS;
 import com.zebra.rfid.api3.Antennas;
+import com.zebra.rfid.api3.BEEPER_VOLUME;
 import com.zebra.rfid.api3.ENUM_TRANSPORT;
 import com.zebra.rfid.api3.ENUM_TRIGGER_MODE;
 import com.zebra.rfid.api3.HANDHELD_TRIGGER_EVENT_TYPE;
@@ -141,7 +142,7 @@ public class ZebraReader {
     public boolean ConfigureReader(int type) {
         try {
             if (!reader.isConnected()) return false;
-
+            reader.Config.setBeeperVolume(BEEPER_VOLUME.HIGH_BEEP);
             TriggerInfo triggerInfo = new TriggerInfo();
             triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);
             triggerInfo.StopTrigger.setTriggerType(STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE);
@@ -162,6 +163,7 @@ public class ZebraReader {
             reader.Config.setTriggerMode(type == 1 ? ENUM_TRIGGER_MODE.RFID_MODE : ENUM_TRIGGER_MODE.BARCODE_MODE, true);
             reader.Config.setStartTrigger(triggerInfo.StartTrigger);
             reader.Config.setStopTrigger(triggerInfo.StopTrigger);
+
 
             return true;
         } catch (InvalidUsageException e) {
@@ -226,6 +228,7 @@ public class ZebraReader {
             ex.printStackTrace();
         }
     }
+
     // Read/Status Notify handler
     // Implement the RfidEventsLister class to receive event notifications
     public class EventHandler implements RfidEventsListener {
@@ -244,7 +247,7 @@ public class ZebraReader {
                     if (!epcStr.isEmpty() && epcStr.length() > 8) {
 
                         if (epcReadListener != null) {
-                            epcReadListener.onTagRead(epcStr,rssi);
+                            epcReadListener.onTagRead(epcStr, rssi);
                         }
 //                        if (MainActivity.isCheckStockPage) {
 //                            MainActivity.checkStockFragment.executeTask(epcStr);

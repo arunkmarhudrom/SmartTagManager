@@ -42,7 +42,7 @@ public class ModuleBFragment extends Fragment {
 
             viewModel = new ViewModelProvider(this).get(ModuleViewModel.class);
             viewModel.initDb(requireContext()); // initialize DB with application context
-            viewModel.BindModuleData(view, viewModel, requireContext(), getViewLifecycleOwner(),"B");
+            viewModel.BindModuleData(view, viewModel, requireContext(), getViewLifecycleOwner(),"B",0);
             viewModel.getText().observe(getViewLifecycleOwner(), s -> {
                 try {
                     tvContent.setText(s);

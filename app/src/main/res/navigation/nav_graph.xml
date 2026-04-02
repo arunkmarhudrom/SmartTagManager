@@ -9,6 +9,10 @@
         android:name="com.grf.dashboard.DashboardFragment"
         android:label="Dashboard">
 
+        <action
+            android:id="@+id/action_dashboard_to_commonFragment"
+            app:destination="@id/commonFragment" />
+
         <!-- existing module actions -->
         <action
             android:id="@+id/action_dashboard_to_moduleA"
@@ -153,4 +157,15 @@
         android:id="@+id/settingFragment"
         android:name="com.grf.dashboard.SettingFragment"
         android:label="setting Fragment" />
+
+    <fragment
+        android:id="@+id/commonFragment"
+        android:name="com.grf.dashboard.CommonFragment"
+        android:label="Common">
+
+        <!-- ✅ Keep scan navigation -->
+        <action
+            android:id="@+id/action_common_to_scanFragment"
+            app:destination="@id/scanFragment" />
+    </fragment>
 </navigation>

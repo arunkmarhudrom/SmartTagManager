@@ -19,17 +19,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.grf.adapter.DashboardAdapter;
+import com.grf.api.ApiHelper;
+import com.grf.helper.LoaderUtil;
+import com.grf.helper.SharedPreferencesHelper;
+import com.grf.helper.TokenManager;
 import com.grf.model.ModuleItem;
 import com.grf.smarttagmanager.LoginActivity;
 import com.grf.smarttagmanager.MainActivity;
 import com.grf.smarttagmanager.R;
+import com.grf.smarttagmanager.databinding.FragmentDashboardBinding;
 import com.grf.utils.PopupUtils;
+import com.grf.utils.SnackbarUtils;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DashboardFragment extends Fragment {
     private static final String TAG = "DashboardFragment";
+    FragmentDashboardBinding binding;
 
     @Nullable
     @Override
@@ -37,12 +47,14 @@ public class DashboardFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         try {
-            return inflater.inflate(R.layout.fragment_dashboard, container, false);
+            binding = FragmentDashboardBinding.inflate(inflater, container, false);
+            return binding.getRoot();
         } catch (Exception e) {
             Log.e(TAG, "onCreateView error", e);
             return super.onCreateView(inflater, container, savedInstanceState);
         }
     }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -56,7 +68,9 @@ public class DashboardFragment extends Fragment {
 
             // Set email dynamically if needed; hardcoded here for demo
             try {
-                tvLoggedIn.setText("Logged in as\n" + "prasunbasu16@gmail.com");
+                SharedPreferencesHelper pre = new SharedPreferencesHelper(requireContext());
+                String user = pre.getString("login_user");
+                tvLoggedIn.setText("Logged in as\n" + (user != null ? user : "Guest"));
             } catch (Exception ex) {
                 Log.e(TAG, "set email error", ex);
             }
@@ -106,6 +120,7 @@ public class DashboardFragment extends Fragment {
                                 public void onNo() {
                                     // your no action
                                 }
+
                                 @Override
                                 public void onCLose() {
                                     // no-op
@@ -124,45 +139,147 @@ public class DashboardFragment extends Fragment {
             GridLayoutManager glm = new GridLayoutManager(requireContext(), 2);
             rv.setLayoutManager(glm);
 
-
             final List<ModuleItem> items = new ArrayList<>();
+            LoaderUtil.show(requireContext(), "Fetching data..");
+            ApiHelper.get(requireContext(), "zone/get-active", new ApiHelper.ApiCallback() {
 
-            items.add(new ModuleItem("Zone A", R.id.action_dashboard_to_moduleA,
-                    "Tap to view tasks",
-                    new int[]{0xFFFF6B6B, 0xFFFF8E53}, 0));
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        if (statusCode == 200) {
 
-            items.add(new ModuleItem("Zone B", R.id.action_dashboard_to_moduleB,
-                    "Tap to view tasks",
-                    new int[]{0xFFFFCA28, 0xFFFFA726}, 0));
+                            JSONObject json = new JSONObject(response);
 
-            items.add(new ModuleItem("Zone C", R.id.action_dashboard_to_moduleC,
-                    "Tap to view tasks",
-                    new int[]{0xFF66BB6A, 0xFF43A047}, 0));
+                            boolean success = json.optBoolean("success", false);
+                            int apiStatusCode = json.optInt("statusCode", 0);
 
-            items.add(new ModuleItem("Zone D", R.id.action_dashboard_to_moduleD,
-                    "Tap to view tasks",
-                    new int[]{0xFF29B6F6, 0xFF0288D1}, 0));
+                            if (success && apiStatusCode == 200) {
 
-            items.add(new ModuleItem("Zone E", R.id.action_dashboard_to_moduleE,
-                    "Tap to view tasks",
-                    new int[]{0xFFAB47BC, 0xFF8E24AA}, 0));
+                                JSONArray dataArray = json.optJSONArray("data");
 
-            items.add(new ModuleItem("Zone F", R.id.action_dashboard_to_moduleF,
-                    "Tap to view tasks",
-                    new int[]{0xFFFF7043, 0xFFF4511E}, 0));
+                                if (dataArray != null) {
 
-            DashboardAdapter adapter = new DashboardAdapter(items, actionId -> {
-                try {
-                    Navigation.findNavController(view).navigate(actionId);
-                } catch (Exception e) {
-                    Log.e(TAG, "Navigation error", e);
+                                    items.clear();
+
+                                    for (int i = 0; i < dataArray.length(); i++) {
+                                        try {
+                                            JSONObject obj = dataArray.getJSONObject(i);
+
+                                            int id = obj.optInt("id");
+                                            String name = obj.optString("name");
+
+                                            // 🔥 Map navigation dynamically
+                                            // int actionId = getActionIdByName(name);
+
+                                            // 🎨 optional color mapping
+                                            int[] colors = getColorByIndex(i);
+
+                                            items.add(new ModuleItem(
+                                                    name,
+                                                    0,
+                                                    "Tap to view tasks",
+                                                    colors,
+                                                    id
+                                            ));
+
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    LoaderUtil.hide();
+
+                                    DashboardAdapter adapter = new DashboardAdapter(items, (position) -> {
+                                        try {
+                                            ModuleItem item = items.get(position);
+
+                                            Bundle bundle = new Bundle();
+                                            bundle.putString("module", item.title); // or item.module
+                                            bundle.putInt("zoneId", item.count);
+
+                                            Navigation.findNavController(view)
+                                                    .navigate(R.id.action_dashboard_to_commonFragment, bundle);
+
+                                        } catch (Exception e) {
+                                            Log.e(TAG, "Navigation error", e);
+                                        }
+                                    });
+
+                                    rv.setAdapter(adapter);
+
+                                } else {
+                                    LoaderUtil.hide();
+                                    SnackbarUtils.show(binding.getRoot(), "No data found");
+                                }
+
+                            } else {
+                                LoaderUtil.hide();
+                                String message = json.optString("message", "Failed");
+                                SnackbarUtils.show(binding.getRoot(), message);
+                            }
+
+                        } else {
+                            LoaderUtil.hide();
+                            SnackbarUtils.show(binding.getRoot(), "HTTP Error: " + statusCode);
+                        }
+
+                    } catch (Exception e) {
+                        LoaderUtil.hide();
+                        e.printStackTrace();
+                        SnackbarUtils.show(binding.getRoot(), "Parsing error");
+                    }
+                }
+
+                @Override
+                public void onError(int statusCode, String error) {
+                    LoaderUtil.hide();
+                    SnackbarUtils.show(binding.getRoot(), statusCode == 401 ? "Unauthorized" : error);
                 }
             });
 
-            rv.setAdapter(adapter);
-
         } catch (Exception e) {
             Log.e(TAG, "onViewCreated error", e);
+        }
+    }
+
+    private int getActionIdByName(String name) {
+        try {
+            switch (name) {
+                case "Zone A":
+                    return R.id.action_dashboard_to_moduleA;
+                case "Zone B":
+                    return R.id.action_dashboard_to_moduleB;
+                case "Zone C":
+                    return R.id.action_dashboard_to_moduleC;
+                case "Zone D":
+                    return R.id.action_dashboard_to_moduleD;
+                case "Zone E":
+                    return R.id.action_dashboard_to_moduleE;
+                case "Zone F":
+                    return R.id.action_dashboard_to_moduleF;
+                default:
+                    return 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private int[] getColorByIndex(int i) {
+        try {
+            int[][] colors = {
+                    {0xFFFF6B6B, 0xFFFF8E53},
+                    {0xFFFFCA28, 0xFFFFA726},
+                    {0xFF66BB6A, 0xFF43A047},
+                    {0xFF29B6F6, 0xFF0288D1},
+                    {0xFFAB47BC, 0xFF8E24AA},
+                    {0xFFFF7043, 0xFFF4511E}
+            };
+            return colors[i % colors.length];
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new int[]{0xFFCCCCCC, 0xFF999999};
         }
     }
 }

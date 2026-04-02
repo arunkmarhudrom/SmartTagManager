@@ -1,5 +1,8 @@
 package com.grf.smarttagmanager;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,18 +16,39 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.grf.api.ApiHelper;
+import com.grf.helper.LoaderUtil;
+import com.grf.helper.SharedPreferencesHelper;
+import com.grf.helper.TokenManager;
 import com.grf.smarttagmanager.databinding.ActivityLoginBinding;
+import com.grf.utils.DeviceUtils;
 import com.grf.utils.PermissionUtil;
 import com.grf.utils.SnackbarUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
     private ActivityLoginBinding binding;
     private static final int REQ_STORAGE = 2001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Inflate binding
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        SharedPreferencesHelper pref = new SharedPreferencesHelper(this);
+        pref.putString("base_url", "https://whrfid.lenskart.com/api/v1/api/");
+        // pref.putString("base_url", "https://rfidapi.bhishmcube.com/v1/api/");
+
+        String deviceId = DeviceUtils.getOrCreateDeviceId(LoginActivity.this);
+
+        boolean isFirstLogin = pref.getBoolean("first_login");
+
+        if (isFirstLogin) {
+            binding.deviceID.setVisibility(VISIBLE);
+            binding.deviceID.setText(deviceId);
+        }
         setContentView(binding.getRoot());
         PermissionUtil.requestStoragePermission(
                 LoginActivity.this,
@@ -58,18 +82,108 @@ public class LoginActivity extends AppCompatActivity {
                         return;
                     }
 
-                    SnackbarUtils.show(binding.getRoot(), "Login Success");
+                    LoaderUtil.show(this, "Please wait...");
+                    try {
 
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
+                        JSONObject body = new JSONObject();
+                        body.put("username", username);
+                        body.put("password", password);
+                        body.put("mac", App.getDeviceMac());
 
-                    // Optional: close the current activity (e.g., LoginActivity) so user can't go back
-                    finish();
+                        ApiHelper.post(this, "device-login", body.toString(), new ApiHelper.ApiCallback() {
+
+                            @Override
+                            public void onSuccess(int statusCode, String response) {
+                                try {
+                                    if (statusCode == 200) {
+
+                                        SharedPreferencesHelper sr = new SharedPreferencesHelper(LoginActivity.this);
+                                        sr.putString("login_user", username);
+
+                                        if (sr.getBoolean("first_login")) {
+                                            sr.putBoolean("first_login", false);
+                                        }
+
+
+                                        JSONObject json = new JSONObject(response);
+
+                                        boolean status = json.optBoolean("status", false);
+                                        boolean success = json.optBoolean("success", false);
+                                        int apiStatusCode = json.optInt("statusCode", 0);
+
+                                        if (status && success && apiStatusCode == 200) {
+
+                                            JSONObject data = json.optJSONObject("data");
+                                            if (data != null) {
+                                                String token = data.optString("token", null);
+                                                String deviceId = data.optString("device_id", null);
+                                                App.setDeviceMac(deviceId);
+                                                if (token != null && !token.isEmpty()) {
+                                                    TokenManager.getInstance().setToken(token);
+
+                                                    LoaderUtil.hide();
+                                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                                    finish();
+                                                } else {
+                                                    LoaderUtil.hide();
+                                                    SnackbarUtils.show(binding.getRoot(), "Token missing");
+                                                }
+                                            } else {
+                                                LoaderUtil.hide();
+                                                SnackbarUtils.show(binding.getRoot(), "Invalid response data");
+                                            }
+
+                                        } else {
+                                            LoaderUtil.hide();
+                                            String message = json.optString("message", "Login failed");
+                                            SnackbarUtils.show(binding.getRoot(), message);
+                                        }
+
+                                    } else {
+                                        LoaderUtil.hide();
+
+                                        String msg = response;
+                                        try {
+                                            JSONObject json = new JSONObject(response);
+                                            msg = json.optString("message", "Failed to login");
+                                        } catch (Exception e) {
+
+                                        }
+                                        SnackbarUtils.show(binding.getRoot(), statusCode == 401 ? msg : response);
+
+                                    }
+
+                                } catch (Exception e) {
+                                    LoaderUtil.hide();
+                                    e.printStackTrace();
+                                    SnackbarUtils.show(binding.getRoot(), "Parsing error");
+                                }
+                            }
+
+                            @Override
+                            public void onError(int statusCode, String error) {
+                                LoaderUtil.hide();
+                                String msg = error;
+                                try {
+                                    JSONObject json = new JSONObject(error);
+                                    msg = json.optString("message", "Failed to login");
+                                } catch (Exception e) {
+
+                                }
+                                SnackbarUtils.show(binding.getRoot(), statusCode == 401 ? msg : error);
+                            }
+                        });
+
+                    } catch (JSONException e) {
+                        LoaderUtil.hide();
+                        e.printStackTrace();
+                    }
+
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     SnackbarUtils.show(binding.getRoot(),
-                            "Login Failed: Error occurred");
+                            "Login Failed: " + ex.getMessage());
                 }
             });
 
@@ -101,9 +215,6 @@ public class LoginActivity extends AppCompatActivity {
                 }
         );
     }
-
-
-
 
 
 }

@@ -1,6 +1,8 @@
 package com.grf.model;
 
 
+import java.util.List;
+
 public class Task {
 
     public static final String TABLE_NAME = "TaskList";
@@ -19,8 +21,9 @@ public class Task {
     public static final String COL_TOTE_ID = "toteId";
     public static final String COL_TRAY_ID = "trayeId";
 
+
     public Task(long id, String title, int tagCount, String tagId, int boxId,
-                double rssValue, String zoneId, String moduleId, int tagFound, int taskComplete, String dateTime) {
+                double rssValue, String zoneId, String moduleId, int tagFound, int taskComplete, String dateTime, List<TagToBeFind> tagToBeFindList) {
         this.id = id;
         this.title = title;
         this.tagCount = tagCount;
@@ -32,6 +35,7 @@ public class Task {
         this.tagFound = tagFound;
         this.taskComplete = taskComplete;
         this.dateTime = dateTime;
+        this.tagToBeFindList =tagToBeFindList;
     }
 
     private long id;          // INTEGER → long
@@ -44,7 +48,7 @@ public class Task {
     private double rssValue;  // REAL → double
     private String zoneId;    // TEXT → String
     private String moduleId;  // TEXT → String
-
+    public List<TagToBeFind> tagToBeFindList;
     public String getDateTime() {
         return dateTime;
     }
@@ -140,6 +144,7 @@ public class Task {
     public Task() {
 
     }
+
 
 
 }

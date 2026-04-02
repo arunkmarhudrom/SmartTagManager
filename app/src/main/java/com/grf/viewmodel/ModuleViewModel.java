@@ -1,6 +1,8 @@
 package com.grf.viewmodel;
 
 
+import static android.content.ContentValues.TAG;
+
 import android.app.Application;
 import android.content.Context;
 import android.net.Uri;
@@ -19,8 +21,13 @@ import androidx.lifecycle.ViewModel;
 import androidx.navigation.Navigation;
 
 import com.grf.adapter.TaskAdapter;
+import com.grf.api.ApiHelper;
 import com.grf.database.TaskDbHelper;
+import com.grf.helper.LoaderUtil;
+import com.grf.helper.TaskCallback;
+import com.grf.model.TagToBeFind;
 import com.grf.model.Task;
+import com.grf.smarttagmanager.App;
 import com.grf.smarttagmanager.R;
 import com.grf.utils.CsvExportUtil;
 import com.grf.utils.LogUtils;
@@ -28,9 +35,13 @@ import com.grf.utils.ModuleUiBinder;
 import com.grf.utils.PreferenceUtils;
 import com.grf.utils.SnackbarUtils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -192,15 +203,44 @@ public class ModuleViewModel extends ViewModel {
         }
     }
 
-    public void BindModuleData(View view, ModuleViewModel vm, Context ctx, LifecycleOwner owner, String moduleId) {
+    public void BindModuleData(View view, ModuleViewModel vm, Context ctx, LifecycleOwner owner, String moduleId, int zoneId) {
         try {
-            List<Task> tasks = taskDbHelper.getTasksList(new TaskDbHelper.TaskFilter());
+            // List<Task> tasks = taskDbHelper.getTasksList(new TaskDbHelper.TaskFilter());
 
-            if (tasks.isEmpty()) {
+            LoaderUtil.show(App.getContext(), "Fetching task..");
+            fetchTasks(App.getContext(), view, new TaskCallback() {
 
-                SnackbarUtils.show(view, "No Task Found");
-            }
-            vm.setAllTasks(tasks);
+                @Override
+                public void onSuccess(List<Task> tasks) {
+                    try {
+                        LoaderUtil.hide();
+                        tasks.sort((t1, t2) -> Long.compare(t1.getId(), t2.getId()));
+
+
+                        if (tasks.isEmpty()) {
+                            SnackbarUtils.show(view, "No Task Found");
+                        }
+                        tasks.forEach(task -> {
+                            try {
+                                task.setZoneId(String.valueOf(zoneId));
+                            } catch (Exception e) {
+                                Log.e(TAG, "setZoneId error", e);
+                            }
+                        });
+                        vm.setAllTasks(tasks);
+                    } catch (Exception e) {
+                        LoaderUtil.hide();
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    LoaderUtil.hide();
+                    SnackbarUtils.show(view, error);
+                }
+            });
+
 
             // listener for adapter actions
             TaskAdapter.Listener listener = new TaskAdapter.Listener() {
@@ -212,34 +252,24 @@ public class ModuleViewModel extends ViewModel {
 
                 @Override
                 public void onItemClick(Task task, int position, int moduleType) {
+                    try {
+                        Log.d("CLICK_DEBUG", "CLICK RECEIVED");
 
-                    int[] actions = {
-                            0, // index 0 unused
-                            R.id.action_moduleA_to_scanFragment,
-                            R.id.action_moduleB_to_scanFragment,
-                            R.id.action_moduleC_to_scanFragment,
-                            R.id.action_moduleD_to_scanFragment,
-                            R.id.action_moduleE_to_scanFragment,
-                            R.id.action_moduleF_to_scanFragment
-                    };
-
-                    if (moduleType >= 1 && moduleType <= 6) {
                         Bundle bundle = new Bundle();
-
-                        String json = taskToJson(task);
-                        bundle.putString("taskData", json);  // example
-
+                        bundle.putString("taskData", taskToJson(task));
                         bundle.putString("moduleName", moduleId);
                         bundle.putInt("moduleType", moduleType);
-                        bundle.putString("taskId", task.getTitle());  // example
-
+                        bundle.putLong("taskId", task.getId());
+                        bundle.putString("zoneId", task.getZoneId());
+                        bundle.putString("taskName", task.getTitle());
                         bundle.putBoolean("isFromDashboard", true);
 
-                        Navigation.findNavController(view).navigate(actions[moduleType], bundle);
+                        Navigation.findNavController(view)
+                                .navigate(R.id.action_common_to_scanFragment, bundle);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "Navigation error", e);
                     }
-
-//                    SnackbarUtils.show(view, "Click On Module " + moduleType + ", Task ID " + task.getModuleId());
-
                 }
             };
             // then bind RecyclerView (observer will update adapter)
@@ -250,6 +280,107 @@ public class ModuleViewModel extends ViewModel {
         }
     }
 
+    public LiveData<List<Task>> getAllTasks() {
+        return allTasks;
+    }
+
+    public void fetchTasks(Context context, View view, TaskCallback callback) {
+        try {
+
+            ApiHelper.get(context, "get-pending-task", new ApiHelper.ApiCallback() {
+
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+
+                        if (statusCode == 200) {
+
+                            JSONObject json = new JSONObject(response);
+                            boolean success = json.optBoolean("success", false);
+                            int apiStatusCode = json.optInt("statusCode", 0);
+
+                            if (success && apiStatusCode == 200) {
+
+                                JSONArray dataArray = json.optJSONArray("data");
+
+                                if (dataArray != null && dataArray.length() > 0) {
+
+                                    List<Task> tasks = new ArrayList<>();
+
+                                    for (int i = 0; i < dataArray.length(); i++) {
+                                        try {
+
+                                            JSONObject obj = dataArray.getJSONObject(i);
+
+                                            long id = obj.optLong("id", 0);
+                                            String title = obj.optString("name", "");
+                                            String dateTime = obj.optString("created_at", "");
+
+                                            JSONArray trays = obj.optJSONArray("trays");
+                                            List<TagToBeFind> trayList = new ArrayList<>();
+
+                                            if (trays != null) {
+                                                for (int j = 0; j < trays.length(); j++) {
+                                                    try {
+
+                                                        JSONObject trayObj = trays.getJSONObject(j);
+
+                                                        String trayId = trayObj.optString("tray_id", "");
+                                                        String rfId = trayObj.optString("rf_id", "");
+                                                        String status = trayObj.optString("status_name", "");
+                                                        String findingTime = trayObj.optString("finding_time", "");
+                                                        String zone = trayObj.optString("zone_name", "");
+
+                                                        trayList.add(new TagToBeFind(trayId, rfId, status, findingTime, zone));
+
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            }
+
+                                            int tagCount = trayList.size();
+
+                                            Task task = new Task(id, title, tagCount, "", 0, 0.0, "", "", 0, 0, dateTime, trayList);
+
+                                            tasks.add(task);
+
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    callback.onSuccess(tasks); // ✅ return data
+
+                                } else {
+                                    callback.onError("No data found");
+                                }
+
+                            } else {
+                                callback.onError(json.optString("message", "Failed"));
+                            }
+
+                        } else {
+                            callback.onError("HTTP Error: " + statusCode);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        callback.onError("Parsing error");
+                    }
+                }
+
+                @Override
+                public void onError(int statusCode, String error) {
+                    callback.onError(statusCode == 401 ? "Unauthorized" : error);
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            callback.onError("Unexpected error");
+        }
+    }
 
     public int getModuleNumber(String module) {
         try {
@@ -384,7 +515,7 @@ public class ModuleViewModel extends ViewModel {
     public static int rssiToStrength0to100(int rssiDbm) {
         try {
 
-            LogUtils.d("min : " + minDbm + " Max : " + maxDbm + " greenTh : " + greenTh + " yellowTh : "+ yellowTh);
+            LogUtils.d("min : " + minDbm + " Max : " + maxDbm + " greenTh : " + greenTh + " yellowTh : " + yellowTh);
             int rssi = Math.max(minDbm, Math.min(maxDbm, rssiDbm));
 
             double percent = ((double) (rssi - minDbm) / (maxDbm - minDbm)) * 100.0;

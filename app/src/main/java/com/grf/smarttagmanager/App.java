@@ -2,13 +2,18 @@ package com.grf.smarttagmanager;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.grf.utils.SoundUtils;
+
 public class App extends Application {
     public static int ReaderType = 2;
+    private static App instance;
+    private static String DeviceMac;
 
     @Override
     public void onCreate() {
@@ -16,7 +21,7 @@ public class App extends Application {
             super.onCreate();
             // Force light (day) theme for the entire app
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
+            instance = this;
 
             // Apply fullscreen to ALL activities
             registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -56,6 +61,33 @@ public class App extends Application {
                 public void onActivityDestroyed(Activity activity) {
                 }
             });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static Context getContext() {
+        try {
+            return instance.getApplicationContext();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // ✅ Getter for DeviceMac
+    public static String getDeviceMac() {
+        try {
+            return DeviceMac != null ? DeviceMac : "";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    // ✅ Setter for DeviceMac
+    public static void setDeviceMac(String mac) {
+        try {
+            DeviceMac = mac;
         } catch (Exception e) {
             e.printStackTrace();
         }

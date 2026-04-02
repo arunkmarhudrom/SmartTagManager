@@ -165,9 +165,9 @@ public class ManageTaskFragment extends Fragment implements TaskAdapter.Listener
         try {
             tasks.clear();
 
-            tasks.add(new Task(0, "Tote find", 9, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime()));
-            tasks.add(new Task(0, "Tray Find", 6, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime()));
-            tasks.add(new Task(0, "Task_2025-12-03_15:45:58", 3, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime()));
+            tasks.add(new Task(0, "Tote find", 9, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(), new ArrayList<>()));
+            tasks.add(new Task(0, "Tray Find", 6, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(),new ArrayList<>()));
+            tasks.add(new Task(0, "Task_2025-12-03_15:45:58", 3, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(),new ArrayList<>()));
 
 
             adapter.replaceAll(tasks);
@@ -192,7 +192,7 @@ public class ManageTaskFragment extends Fragment implements TaskAdapter.Listener
                     "0",       // zoneId FIXED (String)
                     "",        // moduleId
                     0,
-                    0, ModuleViewModel.getDateTime()
+                    0, ModuleViewModel.getDateTime(),new ArrayList<>()
             );
             SnackbarUtils.show(requireView(), "Permission denied");
 

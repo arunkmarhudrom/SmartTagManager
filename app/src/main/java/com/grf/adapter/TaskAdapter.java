@@ -4,6 +4,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,12 +84,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
     }
 
     // PUBLIC MUTATION METHODS (all with try/catch)
-    public void replaceAll(List<Task> newItems) {
+    public void replaceAll(List<Task> newList) {
         try {
-            items.clear();
-            if (newItems != null) items.addAll(newItems);
-            notifyDataSetChanged();
-        } catch (Throwable t) {
+            this.items.clear();
+            this.items.addAll(newList);
+            notifyDataSetChanged(); // 🔥 MUST
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -181,18 +183,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
 //                    tagDetailLayout.getBackground().setTint(semiGreen);
 
                 }
-                if (ModuleType > 0) {
-                    itemView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            try {
-                                if (listener != null)
-                                    listener.onItemClick(task, position, ModuleType);
-                            } catch (Throwable t) {
-                            }
+                itemView.setOnClickListener(v -> {
+                    try {
+                        int pos = getAdapterPosition();
+
+                        if (pos != RecyclerView.NO_POSITION && listener != null) {
+                            Log.d("CLICK_DEBUG", "Clicked: " + items.get(pos).getTitle());
+
+                            // ✅ ALWAYS CALL (remove restriction)
+                            listener.onItemClick(items.get(pos), pos, ModuleType);
                         }
-                    });
-                }
+
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
 
                 ivEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
