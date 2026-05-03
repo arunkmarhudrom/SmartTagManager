@@ -56,7 +56,6 @@ import com.grf.viewmodel.ModuleViewModel;
 import com.nlscan.android.uhf.UHFReader;
 import com.rscja.team.qcom.deviceapi.S;
 
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,8 +71,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ScanFragment extends Fragment implements OnKeyPressHandler {
-
-    private static final org.apache.commons.logging.Log log = LogFactory.getLog(ScanFragment.class);
 
     public ScanFragment() {
         // Required empty public constructor

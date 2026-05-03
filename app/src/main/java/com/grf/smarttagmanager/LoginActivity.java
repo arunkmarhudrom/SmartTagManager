@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         SharedPreferencesHelper pref = new SharedPreferencesHelper(this);
         pref.putString("base_url", "https://whrfid.lenskart.com/api/v1/api/");
-        // pref.putString("base_url", "https://rfidapi.bhishmcube.com/v1/api/");
+         //pref.putString("base_url", "https://rfidapi.bhishmcube.com/v1/api/");
 
         String deviceId = DeviceUtils.getOrCreateDeviceId(LoginActivity.this);
 

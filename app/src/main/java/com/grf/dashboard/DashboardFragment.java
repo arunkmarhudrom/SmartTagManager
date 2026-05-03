@@ -65,6 +65,7 @@ public class DashboardFragment extends Fragment {
             Button btnManage = view.findViewById(R.id.btnManageTasks);
             Button btnReports = view.findViewById(R.id.btnReports);
             Button btnLogout = view.findViewById(R.id.btnLogout);
+            Button btnCycleCounter = view.findViewById(R.id.btnCycleCounter);
 
             // Set email dynamically if needed; hardcoded here for demo
             try {
@@ -131,6 +132,14 @@ public class DashboardFragment extends Fragment {
 
                 } catch (Exception e) {
                     Log.e(TAG, "Logout click error", e);
+                }
+            });
+
+            btnCycleCounter.setOnClickListener(v -> {
+                try {
+                    Navigation.findNavController(v).navigate(R.id.action_dashboard_to_cycleFragment);
+                } catch (Exception e) {
+                    Log.e(TAG, "CycleCounter click error", e);
                 }
             });
 
@@ -244,22 +253,7 @@ public class DashboardFragment extends Fragment {
 
     private int getActionIdByName(String name) {
         try {
-            switch (name) {
-                case "Zone A":
-                    return R.id.action_dashboard_to_moduleA;
-                case "Zone B":
-                    return R.id.action_dashboard_to_moduleB;
-                case "Zone C":
-                    return R.id.action_dashboard_to_moduleC;
-                case "Zone D":
-                    return R.id.action_dashboard_to_moduleD;
-                case "Zone E":
-                    return R.id.action_dashboard_to_moduleE;
-                case "Zone F":
-                    return R.id.action_dashboard_to_moduleF;
-                default:
-                    return 0;
-            }
+            return R.id.action_dashboard_to_commonFragment;
         } catch (Exception e) {
             e.printStackTrace();
             return 0;

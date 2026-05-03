@@ -12,18 +12,20 @@
         android:id="@+id/header_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="12dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
+        android:layout_marginEnd="12dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="3dp"
         app:cardUseCompatPadding="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="14dp">
 
-            <!-- 🔹 TOP ROW (Avatar + Email + Logout RIGHT) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -31,67 +33,107 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:contentDescription="User Avatar"
                     android:src="@drawable/ic_avatar_circle" />
 
                 <TextView
                     android:id="@+id/tvLoggedIn"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:text="Logged in as\nemail@gmail.com"
-                    android:textSize="14sp" />
+                    android:lineSpacingExtra="1dp"
+                    android:text="Logged in as&#10;email@gmail.com"
+                    android:textColor="#1F2A37"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                <!-- 🔥 SMALL LOGOUT (RIGHT SIDE) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLogout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:contentDescription="Logout"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
                     android:minWidth="0dp"
-                    android:padding="6dp"
+                    android:padding="0dp"
                     android:text=""
                     app:backgroundTint="@color/red_600"
+                    app:cornerRadius="20dp"
                     app:icon="@drawable/ic_logout"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="18dp"
                     app:iconTint="@android:color/white" />
             </LinearLayout>
 
-            <!-- 🔹 SMALL GAP -->
-            <Space
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="6dp" />
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="#E6EDF5" />
 
-            <!-- 🔹 OPTIONAL BUTTONS (KEEP SAME IDs) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCycleCounter"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Cycle Counter"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/blue_600"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_radar"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="16dp"
+                app:iconTint="@android:color/white" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnManageTasks"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_height="38dp"
                     android:layout_weight="1"
                     android:text="Task"
-                    android:textSize="10sp"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
                     android:visibility="gone"
                     app:backgroundTint="@color/blue_600"
+                    app:cornerRadius="10dp"
                     app:icon="@drawable/ic_task"
+                    app:iconPadding="6dp"
+                    app:iconSize="14dp"
                     app:iconTint="@android:color/white" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnReports"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="6dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:text="Report"
-                    android:textSize="10sp"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
                     android:visibility="gone"
                     app:backgroundTint="@android:color/white"
+                    app:cornerRadius="10dp"
                     app:icon="@drawable/ic_report"
-                    app:iconTint="@color/blue_600" />
+                    app:iconPadding="6dp"
+                    app:iconSize="14dp"
+                    app:iconTint="@color/blue_600"
+                    app:strokeColor="#D9E4F2"
+                    app:strokeWidth="1dp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -104,9 +146,9 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingLeft="16dp"
+        android:paddingStart="16dp"
         android:paddingTop="5dp"
-        android:paddingRight="16dp"
+        android:paddingEnd="16dp"
         android:paddingBottom="5dp">
 
         <ImageView
@@ -141,7 +183,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingLeft="12dp"
-        android:paddingRight="12dp" />
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp" />
 
 </LinearLayout>

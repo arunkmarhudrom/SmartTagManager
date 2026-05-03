@@ -15,9 +15,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.google.android.material.slider.Slider;
 import com.grf.smarttagmanager.LoginActivity;
 import com.grf.smarttagmanager.MainActivity;
 import com.grf.smarttagmanager.R;
@@ -27,7 +28,8 @@ import com.grf.utils.SnackbarUtils;
 
 public class SettingFragment extends Fragment {
 
-    private EditText etMinDbm, etMaxDbm, etGreenThreshold, etYellowThreshold;
+    private Slider sliderMinDbm, sliderMaxDbm, sliderGreenThreshold, sliderYellowThreshold;
+    private TextView tvMinDbmValue, tvMaxDbmValue, tvGreenThresholdValue, tvYellowThresholdValue;
     private Button btnSave;
 
     @Nullable
@@ -51,11 +53,19 @@ public class SettingFragment extends Fragment {
 
     private void initViews(View v) {
         try {
-            etMinDbm = v.findViewById(R.id.etMinDbm);
-            etMaxDbm = v.findViewById(R.id.etMaxDbm);
-            etGreenThreshold = v.findViewById(R.id.etGreenThreshold);
-            etYellowThreshold = v.findViewById(R.id.etYellowThreshold);
+            sliderMinDbm = v.findViewById(R.id.sliderMinDbm);
+            sliderMaxDbm = v.findViewById(R.id.sliderMaxDbm);
+            sliderGreenThreshold = v.findViewById(R.id.sliderGreenThreshold);
+            sliderYellowThreshold = v.findViewById(R.id.sliderYellowThreshold);
+
+            tvMinDbmValue = v.findViewById(R.id.tvMinDbmValue);
+            tvMaxDbmValue = v.findViewById(R.id.tvMaxDbmValue);
+            tvGreenThresholdValue = v.findViewById(R.id.tvGreenThresholdValue);
+            tvYellowThresholdValue = v.findViewById(R.id.tvYellowThresholdValue);
+
             btnSave = v.findViewById(R.id.btnSaveRssiSettings);
+
+            setupSliderListeners();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,10 +118,17 @@ public class SettingFragment extends Fragment {
         try {
             Context ctx = requireContext();
 
-            etMinDbm.setText(PreferenceUtils.getString(ctx, "MIN_DBM", "-80"));
-            etMaxDbm.setText(PreferenceUtils.getString(ctx, "MAX_DBM", "-40"));
-            etGreenThreshold.setText(PreferenceUtils.getString(ctx, "GREEN_TH", "65"));
-            etYellowThreshold.setText(PreferenceUtils.getString(ctx, "YELLOW_TH", "40"));
+            int minDbm = parseOrDefault(PreferenceUtils.getString(ctx, "MIN_DBM", "-80"), -80);
+            int maxDbm = parseOrDefault(PreferenceUtils.getString(ctx, "MAX_DBM", "-40"), -40);
+            int greenTh = parseOrDefault(PreferenceUtils.getString(ctx, "GREEN_TH", "65"), 65);
+            int yellowTh = parseOrDefault(PreferenceUtils.getString(ctx, "YELLOW_TH", "40"), 40);
+
+            sliderMinDbm.setValue(minDbm);
+            sliderMaxDbm.setValue(maxDbm);
+            sliderGreenThreshold.setValue(greenTh);
+            sliderYellowThreshold.setValue(yellowTh);
+
+            updateValueLabels();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,33 +142,10 @@ public class SettingFragment extends Fragment {
         try {
             Context ctx = requireContext();
 
-            String minDbmStr = etMinDbm.getText().toString().trim();
-            String maxDbmStr = etMaxDbm.getText().toString().trim();
-            String greenThStr = etGreenThreshold.getText().toString().trim();
-            String yellowThStr = etYellowThreshold.getText().toString().trim();
-
-            // -----------------------------
-            // EMPTY CHECK
-            // -----------------------------
-            if (minDbmStr.isEmpty() || maxDbmStr.isEmpty() ||
-                    greenThStr.isEmpty() || yellowThStr.isEmpty()) {
-                SnackbarUtils.show(requireView(), "Please fill all fields");
-                return;
-            }
-
-            // -----------------------------
-            // MUST START WITH "-"
-            // -----------------------------
-            if (!minDbmStr.startsWith("-") || !maxDbmStr.startsWith("-")) {
-                SnackbarUtils.show(requireView(), "RSSI values must start with '-' (e.g., -40)");
-                return;
-            }
-
-            int minDbm = Integer.parseInt(minDbmStr);
-            int maxDbm = Integer.parseInt(maxDbmStr);
-
-            int greenTh = Integer.parseInt(greenThStr);
-            int yellowTh = Integer.parseInt(yellowThStr);
+            int minDbm = Math.round(sliderMinDbm.getValue());
+            int maxDbm = Math.round(sliderMaxDbm.getValue());
+            int greenTh = Math.round(sliderGreenThreshold.getValue());
+            int yellowTh = Math.round(sliderYellowThreshold.getValue());
 
             final int TOP_LIMIT = -20;     // strongest allowed
             final int BOTTOM_LIMIT = -150; // weakest allowed
@@ -198,10 +192,10 @@ public class SettingFragment extends Fragment {
             // -----------------------------
             // SAVE VALUES
             // -----------------------------
-            PreferenceUtils.setString(ctx, "MIN_DBM", minDbmStr);
-            PreferenceUtils.setString(ctx, "MAX_DBM", maxDbmStr);
-            PreferenceUtils.setString(ctx, "GREEN_TH", greenThStr);
-            PreferenceUtils.setString(ctx, "YELLOW_TH", yellowThStr);
+            PreferenceUtils.setString(ctx, "MIN_DBM", String.valueOf(minDbm));
+            PreferenceUtils.setString(ctx, "MAX_DBM", String.valueOf(maxDbm));
+            PreferenceUtils.setString(ctx, "GREEN_TH", String.valueOf(greenTh));
+            PreferenceUtils.setString(ctx, "YELLOW_TH", String.valueOf(yellowTh));
 
             SnackbarUtils.show(requireView(), "Settings Saved ✔");
 
@@ -219,6 +213,32 @@ public class SettingFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
             SnackbarUtils.show(requireView(), "Error saving");
+        }
+    }
+
+    private void setupSliderListeners() {
+        Slider.OnChangeListener onChangeListener = (slider, value, fromUser) -> updateValueLabels();
+        sliderMinDbm.addOnChangeListener(onChangeListener);
+        sliderMaxDbm.addOnChangeListener(onChangeListener);
+        sliderGreenThreshold.addOnChangeListener(onChangeListener);
+        sliderYellowThreshold.addOnChangeListener(onChangeListener);
+    }
+
+    private void updateValueLabels() {
+        try {
+            tvMinDbmValue.setText(Math.round(sliderMinDbm.getValue()) + " dBm");
+            tvMaxDbmValue.setText(Math.round(sliderMaxDbm.getValue()) + " dBm");
+            tvGreenThresholdValue.setText(Math.round(sliderGreenThreshold.getValue()) + "%");
+            tvYellowThresholdValue.setText(Math.round(sliderYellowThreshold.getValue()) + "%");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private int parseOrDefault(String value, int defaultValue) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return defaultValue;
         }
     }
 

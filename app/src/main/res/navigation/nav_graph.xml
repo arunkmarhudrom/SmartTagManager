@@ -13,26 +13,6 @@
             android:id="@+id/action_dashboard_to_commonFragment"
             app:destination="@id/commonFragment" />
 
-        <!-- existing module actions -->
-        <action
-            android:id="@+id/action_dashboard_to_moduleA"
-            app:destination="@id/moduleAFragment" />
-        <action
-            android:id="@+id/action_dashboard_to_moduleB"
-            app:destination="@id/moduleBFragment" />
-        <action
-            android:id="@+id/action_dashboard_to_moduleC"
-            app:destination="@id/moduleCFragment" />
-        <action
-            android:id="@+id/action_dashboard_to_moduleD"
-            app:destination="@id/moduleDFragment" />
-        <action
-            android:id="@+id/action_dashboard_to_moduleE"
-            app:destination="@id/moduleEFragment" />
-        <action
-            android:id="@+id/action_dashboard_to_moduleF"
-            app:destination="@id/moduleFFragment" />
-
         <!-- NEW: action from dashboard -> reports -->
         <action
             android:id="@+id/action_dashboard_to_reportFragment"
@@ -44,61 +24,10 @@
             app:destination="@id/manageTaskFragment">
 
         </action>
-    </fragment>
 
-    <!-- existing module fragment declarations -->
-    <fragment
-        android:id="@+id/moduleAFragment"
-        android:name="com.grf.dashboard.ModuleAFragment"
-        android:label="Module A">
         <action
-            android:id="@+id/action_moduleA_to_scanFragment"
-            app:destination="@id/scanFragment" >
-        </action>
-    </fragment>
-    <fragment
-        android:id="@+id/moduleBFragment"
-        android:name="com.grf.dashboard.ModuleBFragment"
-        android:label="Module B">
-        <action
-            android:id="@+id/action_moduleB_to_scanFragment"
-            app:destination="@id/scanFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/moduleCFragment"
-        android:name="com.grf.dashboard.ModuleCFragment"
-        android:label="Module C">
-        <action
-            android:id="@+id/action_moduleC_to_scanFragment"
-            app:destination="@id/scanFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/moduleDFragment"
-        android:name="com.grf.dashboard.ModuleDFragment"
-        android:label="Module D">
-        <action
-            android:id="@+id/action_moduleD_to_scanFragment"
-            app:destination="@id/scanFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/moduleEFragment"
-        android:name="com.grf.dashboard.ModuleEFragment"
-        android:label="Module E">
-        <action
-            android:id="@+id/action_moduleE_to_scanFragment"
-            app:destination="@id/scanFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/moduleFFragment"
-        android:name="com.grf.dashboard.ModuleFFragment"
-        android:label="Module F">
-        <action
-            android:id="@+id/action_moduleF_to_scanFragment"
-            app:destination="@id/scanFragment" />
+            android:id="@+id/action_dashboard_to_cycleFragment"
+            app:destination="@id/cycleFragment" />
     </fragment>
 
     <!-- NEW: reportFragment declaration -->
@@ -168,4 +97,9 @@
             android:id="@+id/action_common_to_scanFragment"
             app:destination="@id/scanFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/cycleFragment"
+        android:name="com.grf.dashboard.CycleFragment"
+        android:label="Cycle Counter" />
 </navigation>

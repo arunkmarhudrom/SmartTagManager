@@ -2,8 +2,11 @@ package com.grf.smarttagmanager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -15,6 +18,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -50,6 +55,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private static final int REQ_BT_PERMISSIONS = 2002;
     private NavController navController;
 
 
@@ -98,26 +104,11 @@ public class MainActivity extends AppCompatActivity {
                     // ⭐ AUTO-FIRST CONNECT (no manual button)
                     reconnectManager.ensureConnected();
                 } else {
-                    ZebraReader.init(MainActivity.this);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ProgressUtil.showLoading(MainActivity.this, "Initialize Reader....");
-                        }
-                    });
-
-                    ZebraReader.getInstance().InitReader(isConnected -> {
-                        Log.e(TAG, "InitReader Callback Received");
-                        if (isConnected) {
-                            SnackbarUtils.show(rootView, "Reader initialized successfully");
-                            ProgressUtil.dismiss();
-
-                        } else {
-                            SnackbarUtils.show(rootView, "Something went wrong. Try again.");
-                            ProgressUtil.dismiss();
-                        }
-
-                    });
+                    if (hasBluetoothRuntimePermissions()) {
+                        initZebraReader(rootView);
+                    } else {
+                        requestBluetoothRuntimePermissions();
+                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "NavHostFragment init error", e);
@@ -129,6 +120,58 @@ public class MainActivity extends AppCompatActivity {
 
     public UhfManagerHelper getUhfManagerHelper() {
         return uhfHelper;
+    }
+
+    private boolean hasBluetoothRuntimePermissions() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return true;
+        }
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestBluetoothRuntimePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN},
+                    REQ_BT_PERMISSIONS
+            );
+        }
+    }
+
+    private void initZebraReader(View rootView) {
+        try {
+            ZebraReader.init(MainActivity.this);
+            runOnUiThread(() -> ProgressUtil.showLoading(MainActivity.this, "Initialize Reader...."));
+
+            ZebraReader.getInstance().InitReader(isConnected -> {
+                Log.e(TAG, "InitReader Callback Received");
+                if (isConnected) {
+                    SnackbarUtils.show(rootView, "Reader initialized successfully");
+                    ProgressUtil.dismiss();
+                } else {
+                    SnackbarUtils.show(rootView, "Something went wrong. Try again.");
+                    ProgressUtil.dismiss();
+                }
+            });
+        } catch (Exception e) {
+            ProgressUtil.dismiss();
+            Log.e(TAG, "initZebraReader error", e);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_BT_PERMISSIONS) {
+            View rootView = getWindow().getDecorView().getRootView();
+            if (hasBluetoothRuntimePermissions()) {
+                initZebraReader(rootView);
+            } else {
+                SnackbarUtils.show(rootView, "Bluetooth permission denied");
+            }
+        }
     }
 
     void KeyPress() {
@@ -264,9 +307,6 @@ public class MainActivity extends AppCompatActivity {
                     if (currentId == R.id.dashboardFragment) {
                         Log.d(TAG, "DOWN on dashboard");
                         return true;
-                    } else if (currentId == R.id.moduleAFragment) {
-                        Log.d(TAG, "DOWN on Module A");
-                        return true;
                     }
                     // Add more destinations as needed
                     // } else if (currentId == R.id.someOtherFragment) { ... }
@@ -274,9 +314,6 @@ public class MainActivity extends AppCompatActivity {
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                     if (currentId == R.id.dashboardFragment) {
                         Log.d(TAG, "UP on dashboard");
-                        return true;
-                    } else if (currentId == R.id.moduleAFragment) {
-                        Log.d(TAG, "UP on Module A");
                         return true;
                     }
                     // Add more as needed
@@ -388,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         try {
+            ProgressUtil.dismiss();
 
             if (App.ReaderType == 2) {
                 ZebraReader.getInstance().disconnectReader();
@@ -428,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         try {
+            ProgressUtil.dismiss();
             if (App.ReaderType == 1)
                 reconnectManager.onInvisible();
         } catch (Exception e) {
