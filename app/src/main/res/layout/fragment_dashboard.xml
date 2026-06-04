@@ -103,17 +103,19 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnManageTasks"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="46dp"
                     android:layout_weight="1"
-                    android:text="Task"
+                    android:text="Manage Tasks"
                     android:textAllCaps="false"
-                    android:textSize="11sp"
-                    android:visibility="gone"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="visible"
                     app:backgroundTint="@color/blue_600"
-                    app:cornerRadius="10dp"
+                    app:cornerRadius="12dp"
                     app:icon="@drawable/ic_task"
-                    app:iconPadding="6dp"
-                    app:iconSize="14dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="16dp"
                     app:iconTint="@android:color/white" />
 
                 <com.google.android.material.button.MaterialButton

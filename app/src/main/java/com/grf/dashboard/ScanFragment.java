@@ -8,6 +8,7 @@ import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -62,7 +63,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -180,18 +180,18 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
             });
             ImageView back = view.findViewById(R.id.ivBack);
 
-            back.setOnClickListener(v -> {
-                try {
-                    if (App.ReaderType == 1) {
-                        uhfManagerHelper.stopInventory();
-                    } else
-                        ZebraReader.getInstance().StopInventory();
-
-                    requireActivity().onBackPressed();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+            back.setOnClickListener(v -> navigateBackAfterStopping());
+            requireActivity().getOnBackPressedDispatcher().addCallback(
+                    getViewLifecycleOwner(),
+                    new OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            stopScanningBeforeLeaving();
+                            setEnabled(false);
+                            requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                        }
+                    }
+            );
 
             // initialize list + adapter
             initAdapter(view);
@@ -287,6 +287,9 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
     private List<PendingTag> pendingList = new ArrayList<>();
     private PendingTagsAdapter adapter;
     private Map<String, Integer> tagIndexMap = new HashMap<>(); // tagId -> index in pendingList
+    private final java.util.Set<String> hiddenConfirmedTags = new java.util.HashSet<>();
+    private RecyclerView pendingTagsRecyclerView;
+    private LinearLayoutManager pendingTagsLayoutManager;
     // add this field to your Fragment (or enclosing class)
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Map<String, PendingTag> pendingUpdates = new HashMap<>();
@@ -333,8 +336,8 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
     // ---------- InitBindTagList: prepares recycler + adapter ----------
     private void initAdapter(View view) {
         try {
-            RecyclerView rv = view.findViewById(R.id.rvPendingTags);
-            rv.setItemAnimator(null);
+            pendingTagsRecyclerView = view.findViewById(R.id.rvPendingTags);
+            pendingTagsRecyclerView.setItemAnimator(null);
             // keep pendingList as initial empty list or pre-fill
             pendingList.clear();
             tagIndexMap.clear();
@@ -344,20 +347,24 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void onItemClicked(PendingTag tag) {
-
+                    hideConfirmedTagFromList(tag.getTagId());
                     UpdateTask(tag);
                 }
 
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void onItemChecked(PendingTag tag) {
+                    hideConfirmedTagFromList(tag.getTagId());
                     UpdateTask(tag);
 
                 }
             });
 
-            rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-            rv.setAdapter(adapter);
+            pendingTagsLayoutManager = new LinearLayoutManager(requireContext());
+            pendingTagsLayoutManager.setReverseLayout(false);
+            pendingTagsLayoutManager.setStackFromEnd(false);
+            pendingTagsRecyclerView.setLayoutManager(pendingTagsLayoutManager);
+            pendingTagsRecyclerView.setAdapter(adapter);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -396,6 +403,21 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
         }
     }
 
+    private void stopScanningBeforeLeaving() {
+        stopScanning();
+        isInventoryActive = false;
+        isKey243Pressed = false;
+    }
+
+    private void navigateBackAfterStopping() {
+        try {
+            stopScanningBeforeLeaving();
+            requireActivity().onBackPressed();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
 
 // Activity: ensure these are initialized once (e.g. onCreateView)
 
@@ -413,6 +435,80 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+    }
+
+    private void hideConfirmedTagFromList(String tagId) {
+        try {
+            if (tagId == null || tagId.trim().isEmpty()) return;
+            hiddenConfirmedTags.add(tagId);
+
+            Integer idxObj = tagIndexMap.get(tagId);
+            if (idxObj == null) return;
+
+            int index = idxObj;
+            if (index < 0 || index >= pendingList.size()) return;
+
+            pendingList.remove(index);
+            rebuildIndexMap();
+            if (adapter != null) {
+                adapter.notifyItemRemoved(index);
+                if (index < pendingList.size()) {
+                    adapter.notifyItemRangeChanged(index, pendingList.size() - index);
+                }
+            }
+            tvSectionTitle.setText("Nearby Tag (" + pendingList.size() + ")");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private int getSignalBucket(int percent) {
+        if (percent >= ModuleViewModel.greenTh) {
+            return 0;
+        } else if (percent >= ModuleViewModel.yellowTh) {
+            return 1;
+        } else if (percent >= ModuleViewModel.orangeTh) {
+            return 2;
+        }
+        return 3;
+    }
+
+    private int comparePendingTags(PendingTag left, PendingTag right) {
+        int bucketCompare = Integer.compare(
+                getSignalBucket(left.getSignalPercent()),
+                getSignalBucket(right.getSignalPercent())
+        );
+        if (bucketCompare != 0) {
+            return bucketCompare;
+        }
+        return Integer.compare(right.getSignalPercent(), left.getSignalPercent());
+    }
+
+    private int findSortedInsertPosition(PendingTag tag) {
+        int pos = 0;
+        while (pos < pendingList.size() && comparePendingTags(pendingList.get(pos), tag) <= 0) {
+            pos++;
+        }
+        return pos;
+    }
+
+    private void sortPendingList() {
+        pendingList.sort(this::comparePendingTags);
+    }
+
+    private void keepStrongestItemsVisible() {
+        if (pendingTagsRecyclerView == null) return;
+        pendingTagsRecyclerView.post(() -> {
+            try {
+                if (pendingTagsLayoutManager != null) {
+                    pendingTagsLayoutManager.scrollToPositionWithOffset(0, 0);
+                } else {
+                    pendingTagsRecyclerView.scrollToPosition(0);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
 
@@ -459,7 +555,7 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private final List<Runnable> pendingUiOps = new ArrayList<>();
     private boolean isUiScheduled = false;
-    private static final long UI_BATCH_DELAY = 50; // 🔥 key improvement
+    private static final long UI_BATCH_DELAY = 30; // keep UI responsive under rapid reads
 
 
     private void scheduleUiFlush() {
@@ -476,66 +572,85 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
                         pendingUpdates.clear();
                     }
 
+                    if (copy.isEmpty()) {
+                        return;
+                    }
+                    if (adapter == null || !isAdded()) {
+                        return;
+                    }
+
+                    // avoid per-tag audio spam and UI jank during high-frequency reads
+                    SoundUtils.play();
+
+                    boolean bulkMode = true;
+                    boolean hasAnyChange = false;
+                    boolean listTopChanged = false;
+
                     for (PendingTag incoming : copy.values()) {
-                        SoundUtils.play();
                         String tagId = incoming.getTagId();
+                        if (hiddenConfirmedTags.contains(tagId)) {
+                            continue; // keep confirmed tags hidden during current scan cycle
+                        }
                         Integer idxObj = tagIndexMap.get(tagId);
 
                         if (idxObj == null) {
                             pendingList.add(incoming);
-                            int pos = pendingList.size() - 1;
-                            tagIndexMap.put(tagId, pos);
-                            adapter.notifyItemInserted(pos);
+                            hasAnyChange = true;
 
                         } else {
                             int index = idxObj;
 
                             if (index >= 0 && index < pendingList.size()) {
                                 PendingTag existing = pendingList.get(index);
+                                existing.setRssi(incoming.getRssi());
 
                                 if (existing.getSignalPercent() != incoming.getSignalPercent()) {
 
                                     existing.setSignalPercent(incoming.getSignalPercent());
 
-                                    int newIndex = index;
+                                    pendingList.remove(index);
+                                    int newIndex = findSortedInsertPosition(existing);
+                                    pendingList.add(newIndex, existing);
 
-                                    while (newIndex > 0 &&
-                                            pendingList.get(newIndex - 1).getSignalPercent() < existing.getSignalPercent()) {
-                                        Collections.swap(pendingList, newIndex, newIndex - 1);
-                                        newIndex--;
+                                    hasAnyChange = true;
+                                    if (newIndex == 0 && index != 0) {
+                                        listTopChanged = true;
                                     }
+                                    if (!bulkMode) {
+                                        if (index != newIndex) {
+                                            adapter.notifyItemMoved(index, newIndex);
+                                        }
 
-                                    while (newIndex < pendingList.size() - 1 &&
-                                            pendingList.get(newIndex + 1).getSignalPercent() > existing.getSignalPercent()) {
-                                        Collections.swap(pendingList, newIndex, newIndex + 1);
-                                        newIndex++;
+                                        adapter.notifyItemChanged(newIndex, "signal");
                                     }
-
-                                    if (index != newIndex) {
-                                        adapter.notifyItemMoved(index, newIndex);
-                                    }
-
-                                    adapter.notifyItemChanged(newIndex, "signal");
 
                                     // 🔥 update index map only for affected range
-                                    int start = Math.min(index, newIndex);
-                                    int end = Math.max(index, newIndex);
-                                    for (int i = start; i <= end; i++) {
-                                        tagIndexMap.put(pendingList.get(i).getTagId(), i);
-                                    }
+                                    rebuildIndexMap();
+                                } else if (!bulkMode) {
+                                    adapter.notifyItemChanged(index, "signal");
                                 }
                             }
                         }
                     }
 
+                    if (hasAnyChange) {
+                        sortPendingList();
+                        rebuildIndexMap();
+                        adapter.notifyDataSetChanged();
+                        listTopChanged = true;
+                    }
+
                     tvSectionTitle.setText("Nearby Tag (" + pendingList.size() + ")");
+                    if (listTopChanged) {
+                        keepStrongestItemsVisible();
+                    }
 
                 } catch (Throwable t) {
                     t.printStackTrace();
                 } finally {
                     isUiScheduled = false;
                 }
-            }, 30); // 🔥 smooth UI frame
+            }, UI_BATCH_DELAY); // smooth UI frame
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -618,7 +733,10 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
     public void onDestroyView() {
         super.onDestroyView();
         try {
+            stopScanning();
+            isInventoryActive = false;
             mainHandler.removeCallbacksAndMessages(null);
+            uiHandler.removeCallbacksAndMessages(null);
             SoundUtils.release();
         } catch (Throwable ignored) {
         }
@@ -756,6 +874,7 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
                             LoaderUtil.hide();
                             try {
                                 Log.d("API", message);
+                                hideConfirmedTagFromList(tag.getTagId());
                                 SnackbarUtils.show(requireView(), message);
                             } catch (Exception e) {
                                 e.printStackTrace();

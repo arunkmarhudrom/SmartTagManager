@@ -62,6 +62,15 @@
                 android:visibility="gone">
 
                 <ImageView
+                    android:id="@+id/ivView"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:contentDescription="View"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_report"
+                    card_view:tint="#3D55E6" />
+
+                <ImageView
                     android:id="@+id/ivEdit"
                     android:layout_width="32dp"
                 android:layout_height="32dp"
@@ -94,7 +103,7 @@
                     android:id="@+id/ivChevron"
                     android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@drawable/chev_right"
+                android:src="@drawable/arrow_right_alt_24"
                 android:contentDescription="Open"
                 android:padding="6dp"
                 card_view:tint="#3D55E6" />

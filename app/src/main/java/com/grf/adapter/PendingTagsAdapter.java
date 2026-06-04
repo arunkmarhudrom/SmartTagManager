@@ -5,7 +5,6 @@ import static android.view.View.GONE;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -79,6 +78,7 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
         try {
             if (!payloads.isEmpty()) {
                 PendingTag tag = items.get(position);
+                resetItemState(holder);
                 updateSignalOnly(holder, tag);
                 return;
             }
@@ -98,6 +98,7 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
             PendingTag tag = items.get(position);
             if (tag == null) return;
 
+            resetItemState(holder);
             holder.tvTagId.setText(tag.getToteId());
             holder.tvTagSubtitle.setText("Tap to confirm scan");
 
@@ -126,6 +127,8 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
                 tintColor = ContextCompat.getColor(context, R.color.signal_green);
             } else if (percent >= ModuleViewModel.yellowTh) {
                 tintColor = ContextCompat.getColor(context, R.color.signal_yellow);
+            } else if (percent >= ModuleViewModel.orangeTh) {
+                tintColor = ContextCompat.getColor(context, R.color.signal_orange);
             } else {
                 tintColor = ContextCompat.getColor(context, R.color.signal_red);
             }
@@ -157,7 +160,6 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
                             public void onYes() {
                                 try {
                                     if (listener != null) listener.onItemClicked(tag);
-                                    applyConfirmedUI(holder);
                                 } catch (Throwable ignored) {}
                             }
                             public void onNo() {}
@@ -167,7 +169,6 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
 
             } else {
                 if (listener != null) listener.onItemClicked(tag);
-                applyConfirmedUI(holder);
             }
 
         } catch (Throwable t) {
@@ -175,10 +176,10 @@ public class PendingTagsAdapter extends RecyclerView.Adapter<PendingTagsAdapter.
         }
     }
 
-    private void applyConfirmedUI(VH holder) {
+    private void resetItemState(VH holder) {
         try {
-            holder.tagDetailLayout.setBackgroundColor(Color.parseColor("#BE58EF86"));
-            holder.itemView.setEnabled(false);
+            holder.tagDetailLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+            holder.itemView.setEnabled(true);
         } catch (Throwable t) {
             t.printStackTrace();
         }

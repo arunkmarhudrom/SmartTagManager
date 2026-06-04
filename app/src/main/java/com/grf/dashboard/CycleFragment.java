@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.KeyEvent;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -32,6 +33,7 @@ import com.grf.uhfmanager.UhfManagerHelper;
 import com.grf.uhfmanager.ZebraReader;
 import com.grf.utils.OnKeyPressHandler;
 import com.grf.utils.SnackbarUtils;
+import com.grf.utils.SoundUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -51,6 +53,8 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
     private Button btnSubmitTags;
     private CycleTagAdapter cycleTagAdapter;
     private TextView tvCount;
+    private RecyclerView rvCycleTags;
+    private LinearLayoutManager cycleTagsLayoutManager;
     private boolean isKeyPressed = false;
     private final int KEY_TRIGGER = 243;
     private final int KEY_TRIGGER_ZEBRA = 102;
@@ -73,13 +77,29 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
         tvCount = view.findViewById(R.id.tvUniqueCount);
         btnStartStop = view.findViewById(R.id.btnCycleStartStop);
         btnSubmitTags = view.findViewById(R.id.btnSubmitTags);
+        SoundUtils.init(requireContext());
         ImageView ivBack = view.findViewById(R.id.ivBack);
-        RecyclerView rvCycleTags = view.findViewById(R.id.rvCycleTags);
+        rvCycleTags = view.findViewById(R.id.rvCycleTags);
 
         cycleTagAdapter = new CycleTagAdapter();
-        rvCycleTags.setLayoutManager(new LinearLayoutManager(requireContext()));
+        cycleTagsLayoutManager = new LinearLayoutManager(requireContext());
+        cycleTagsLayoutManager.setReverseLayout(false);
+        cycleTagsLayoutManager.setStackFromEnd(false);
+        rvCycleTags.setLayoutManager(cycleTagsLayoutManager);
+        rvCycleTags.setItemAnimator(null);
         rvCycleTags.setAdapter(cycleTagAdapter);
-        ivBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        ivBack.setOnClickListener(v -> navigateBackAfterStopping());
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        stopScanningBeforeLeaving();
+                        setEnabled(false);
+                        requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                    }
+                }
+        );
 
         if (App.ReaderType == 1 && requireActivity() instanceof MainActivity) {
             uhfManagerHelper = ((MainActivity) requireActivity()).getUhfManagerHelper();
@@ -117,6 +137,13 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
         stopScanning();
     }
 
+    @Override
+    public void onDestroyView() {
+        stopScanning();
+        SoundUtils.release();
+        super.onDestroyView();
+    }
+
     private void startScanning() {
         try {
             if (isScanning) return;
@@ -148,6 +175,20 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
             isScanning = false;
         } catch (Exception e) {
             Log.e(TAG, "stopScanning error", e);
+        }
+    }
+
+    private void stopScanningBeforeLeaving() {
+        stopScanning();
+        isKeyPressed = false;
+    }
+
+    private void navigateBackAfterStopping() {
+        try {
+            stopScanningBeforeLeaving();
+            requireActivity().onBackPressed();
+        } catch (Exception e) {
+            Log.e(TAG, "navigateBackAfterStopping error", e);
         }
     }
 
@@ -267,7 +308,11 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
             if (tag.isEmpty()) return;
 
             if (isAdded()) {
-                requireActivity().runOnUiThread(() -> cycleTagAdapter.upsertTag(tag, rssi));
+                requireActivity().runOnUiThread(() -> {
+                    SoundUtils.play();
+                    cycleTagAdapter.upsertTag(tag, rssi);
+                    keepStrongestItemsVisible();
+                });
             }
 
             if (uniqueTags.add(tag)) {
@@ -305,6 +350,21 @@ public class CycleFragment extends Fragment implements OnKeyPressHandler {
         } catch (Exception e) {
             Log.e(TAG, "resetCycleSession error", e);
         }
+    }
+
+    private void keepStrongestItemsVisible() {
+        if (rvCycleTags == null) return;
+        rvCycleTags.post(() -> {
+            try {
+                if (cycleTagsLayoutManager != null) {
+                    cycleTagsLayoutManager.scrollToPositionWithOffset(0, 0);
+                } else {
+                    rvCycleTags.scrollToPosition(0);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "keepStrongestItemsVisible error", e);
+            }
+        });
     }
 
     @Override

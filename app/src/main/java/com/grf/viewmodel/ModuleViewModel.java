@@ -70,6 +70,7 @@ public class ModuleViewModel extends ViewModel {
             maxDbm = getMaxDbm(ctx);
             greenTh = getGreenTh(ctx);
             yellowTh = getYellowTh(ctx);
+            orangeTh = getOrangeTh(ctx);
 
             if (taskDbHelper == null && ctx != null) {
                 taskDbHelper = new TaskDbHelper(ctx.getApplicationContext());
@@ -214,7 +215,15 @@ public class ModuleViewModel extends ViewModel {
                 public void onSuccess(List<Task> tasks) {
                     try {
                         LoaderUtil.hide();
-                        tasks.sort((t1, t2) -> Long.compare(t1.getId(), t2.getId()));
+                        tasks.sort((t1, t2) -> {
+                            String d1 = t1 != null ? t1.getDateTime() : "";
+                            String d2 = t2 != null ? t2.getDateTime() : "";
+                            int byDate = d2.compareToIgnoreCase(d1); // latest created_at first
+                            if (byDate != 0) return byDate;
+                            long id1 = t1 != null ? t1.getId() : 0L;
+                            long id2 = t2 != null ? t2.getId() : 0L;
+                            return Long.compare(id2, id1); // fallback: highest id first
+                        });
 
 
                         if (tasks.isEmpty()) {
@@ -511,11 +520,12 @@ public class ModuleViewModel extends ViewModel {
     public static int maxDbm = -40;
     public static int greenTh = 65;
     public static int yellowTh = 40;
+    public static int orangeTh = 20;
 
     public static int rssiToStrength0to100(int rssiDbm) {
         try {
 
-            LogUtils.d("min : " + minDbm + " Max : " + maxDbm + " greenTh : " + greenTh + " yellowTh : " + yellowTh);
+            LogUtils.d("min : " + minDbm + " Max : " + maxDbm + " greenTh : " + greenTh + " yellowTh : " + yellowTh + " orangeTh : " + orangeTh);
             int rssi = Math.max(minDbm, Math.min(maxDbm, rssiDbm));
 
             double percent = ((double) (rssi - minDbm) / (maxDbm - minDbm)) * 100.0;
@@ -565,6 +575,14 @@ public class ModuleViewModel extends ViewModel {
             return Integer.parseInt(PreferenceUtils.getString(ctx, "YELLOW_TH", "40"));
         } catch (Exception e) {
             return 40;
+        }
+    }
+
+    public static int getOrangeTh(Context ctx) {
+        try {
+            return Integer.parseInt(PreferenceUtils.getString(ctx, "ORANGE_TH", "20"));
+        } catch (Exception e) {
+            return 20;
         }
     }
 

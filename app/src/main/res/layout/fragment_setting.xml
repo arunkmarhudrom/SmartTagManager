@@ -6,10 +6,17 @@
     android:background="@drawable/bg_gradient"
     android:padding="12dp">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <!-- HEADER WITH BACK BUTTON + TITLE -->
         <LinearLayout
@@ -40,8 +47,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <!-- SETTINGS CARD -->
@@ -191,6 +197,38 @@
                     android:value="40" />
             </LinearLayout>
 
+            <!-- Orange Threshold -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="2dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Orange Above (%)"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvOrangeThresholdValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="20%"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderOrangeThreshold"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:valueFrom="1"
+                    android:valueTo="100"
+                    android:value="20" />
+            </LinearLayout>
+
             <!-- SAVE BUTTON -->
             <Button
                 android:id="@+id/btnSaveRssiSettings"
@@ -206,5 +244,6 @@
             </LinearLayout>
         </LinearLayout>
 
-    </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>

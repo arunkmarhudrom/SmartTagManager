@@ -23,7 +23,8 @@ public class ModuleUiBinder {
             rv.setLayoutManager(new LinearLayoutManager(context));
             rv.setHasFixedSize(true);
 
-            TaskAdapter adapter = new TaskAdapter(new ArrayList<>(), listener, vm.getModuleNumber(moduleId));
+            // Force chevron/arrow-only task rows in Common module lists.
+            TaskAdapter adapter = new TaskAdapter(new ArrayList<>(), listener, 1);
             rv.setAdapter(adapter);
 
             // ✅ FIXED: use correct LiveData

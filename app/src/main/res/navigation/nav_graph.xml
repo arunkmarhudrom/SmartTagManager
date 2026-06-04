@@ -46,7 +46,16 @@
         <action
             android:id="@+id/action_dashboard_to_newTaskFragment"
             app:destination="@id/newTaskFragment" />
+
+        <action
+            android:id="@+id/action_manageTask_to_viewTaskDetailsFragment"
+            app:destination="@id/viewTaskDetailsFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/viewTaskDetailsFragment"
+        android:name="com.grf.dashboard.ViewTaskDetailsFragment"
+        android:label="View Task Details" />
 
     <!-- NEW: newTaskFragment declaration -->
     <fragment
@@ -60,7 +69,16 @@
         <action
             android:id="@+id/action_newTask_to_tagSelectionFragment"
             app:destination="@+id/tagSelectionFragment" />
+
+        <action
+            android:id="@+id/action_newTask_to_addedTagsFragment"
+            app:destination="@+id/addedTagsFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/addedTagsFragment"
+        android:name="com.grf.dashboard.AddedTagsFragment"
+        android:label="Added Tags" />
 
     <!-- NEW: scanFragment declaration -->
     <fragment

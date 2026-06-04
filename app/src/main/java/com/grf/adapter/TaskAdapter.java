@@ -136,6 +136,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
         TextView tvTagCount;
         ImageView ivEdit;
         ImageView ivDelete;
+        ImageView ivView;
         LinearLayout layoutChevron, layoutActions, tagDetailLayout;
 
         TaskVH(@NonNull View itemView) {
@@ -145,6 +146,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                 tvTagCount = itemView.findViewById(R.id.tvTagCount);
                 ivEdit = itemView.findViewById(R.id.ivEdit);
                 ivDelete = itemView.findViewById(R.id.ivDelete);
+                ivView = itemView.findViewById(R.id.ivView);
 
                 layoutChevron = itemView.findViewById(R.id.layoutChevron);
                 layoutActions = itemView.findViewById(R.id.layoutActions);
@@ -156,6 +158,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                 tvTagCount = new TextView(itemView.getContext());
                 ivEdit = new ImageView(itemView.getContext());
                 ivDelete = new ImageView(itemView.getContext());
+                ivView = new ImageView(itemView.getContext());
 
                 layoutChevron = new LinearLayout(itemView.getContext());
                 layoutActions = new LinearLayout(itemView.getContext());
@@ -219,6 +222,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                     }
                 });
 
+                ivView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            if (listener != null) listener.onItemClick(task, position, ModuleType);
+                        } catch (Throwable t) {
+                        }
+                    }
+                });
+
             } catch (Throwable t) {
                 clear();
             }
@@ -231,6 +244,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                 itemView.setOnClickListener(null);
                 ivEdit.setOnClickListener(null);
                 ivDelete.setOnClickListener(null);
+                ivView.setOnClickListener(null);
             } catch (Throwable t) {
             }
         }

@@ -1,7 +1,6 @@
 package com.grf.dashboard;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,8 +18,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.slider.Slider;
-import com.grf.smarttagmanager.LoginActivity;
-import com.grf.smarttagmanager.MainActivity;
 import com.grf.smarttagmanager.R;
 import com.grf.utils.PopupUtils;
 import com.grf.utils.PreferenceUtils;
@@ -28,8 +25,8 @@ import com.grf.utils.SnackbarUtils;
 
 public class SettingFragment extends Fragment {
 
-    private Slider sliderMinDbm, sliderMaxDbm, sliderGreenThreshold, sliderYellowThreshold;
-    private TextView tvMinDbmValue, tvMaxDbmValue, tvGreenThresholdValue, tvYellowThresholdValue;
+    private Slider sliderMinDbm, sliderMaxDbm, sliderGreenThreshold, sliderYellowThreshold, sliderOrangeThreshold;
+    private TextView tvMinDbmValue, tvMaxDbmValue, tvGreenThresholdValue, tvYellowThresholdValue, tvOrangeThresholdValue;
     private Button btnSave;
 
     @Nullable
@@ -42,7 +39,7 @@ public class SettingFragment extends Fragment {
 
         try {
             initViews(view);
-            loadValues();       // load saved values
+            loadValues();
             setupListeners(view);
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,11 +54,13 @@ public class SettingFragment extends Fragment {
             sliderMaxDbm = v.findViewById(R.id.sliderMaxDbm);
             sliderGreenThreshold = v.findViewById(R.id.sliderGreenThreshold);
             sliderYellowThreshold = v.findViewById(R.id.sliderYellowThreshold);
+            sliderOrangeThreshold = v.findViewById(R.id.sliderOrangeThreshold);
 
             tvMinDbmValue = v.findViewById(R.id.tvMinDbmValue);
             tvMaxDbmValue = v.findViewById(R.id.tvMaxDbmValue);
             tvGreenThresholdValue = v.findViewById(R.id.tvGreenThresholdValue);
             tvYellowThresholdValue = v.findViewById(R.id.tvYellowThresholdValue);
+            tvOrangeThresholdValue = v.findViewById(R.id.tvOrangeThresholdValue);
 
             btnSave = v.findViewById(R.id.btnSaveRssiSettings);
 
@@ -76,44 +75,36 @@ public class SettingFragment extends Fragment {
             ImageView back = view.findViewById(R.id.ivBack);
             back.setOnClickListener(v -> requireActivity().onBackPressed());
 
-            btnSave.setOnClickListener(v->{
-
-                PopupUtils.showCustomYesNoDialog(
-                        requireContext(),
-                        "Logout?",
-                        "Are you sure you want to cahnge?",
-                        new PopupUtils.PopupCallback() {
-                            @Override
-                            public void onYes() {
-                                try {
-                                    saveValues();
-
-                                } catch (Exception e) {
-                                    Log.e("TAG", "Logout yes error", e);
-                                }
-                            }
-
-                            @Override
-                            public void onNo() {
-                                Log.d("TAG", "Logout cancelled");
-                            }
-                            @Override
-                            public void onCLose() {
-                                // no-op
+            btnSave.setOnClickListener(v -> PopupUtils.showCustomYesNoDialog(
+                    requireContext(),
+                    "Save Settings?",
+                    "Are you sure you want to save these changes?",
+                    new PopupUtils.PopupCallback() {
+                        @Override
+                        public void onYes() {
+                            try {
+                                saveValues();
+                            } catch (Exception e) {
+                                Log.e("TAG", "Save settings error", e);
                             }
                         }
-                );
 
+                        @Override
+                        public void onNo() {
+                            Log.d("TAG", "Save cancelled");
+                        }
 
-            });
+                        @Override
+                        public void onCLose() {
+                            // no-op
+                        }
+                    }
+            ));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // ======================
-    // LOAD VALUES USING PreferenceUtils
-    // ======================
     private void loadValues() {
         try {
             Context ctx = requireContext();
@@ -122,11 +113,13 @@ public class SettingFragment extends Fragment {
             int maxDbm = parseOrDefault(PreferenceUtils.getString(ctx, "MAX_DBM", "-40"), -40);
             int greenTh = parseOrDefault(PreferenceUtils.getString(ctx, "GREEN_TH", "65"), 65);
             int yellowTh = parseOrDefault(PreferenceUtils.getString(ctx, "YELLOW_TH", "40"), 40);
+            int orangeTh = parseOrDefault(PreferenceUtils.getString(ctx, "ORANGE_TH", "20"), 20);
 
             sliderMinDbm.setValue(minDbm);
             sliderMaxDbm.setValue(maxDbm);
             sliderGreenThreshold.setValue(greenTh);
             sliderYellowThreshold.setValue(yellowTh);
+            sliderOrangeThreshold.setValue(orangeTh);
 
             updateValueLabels();
 
@@ -135,9 +128,6 @@ public class SettingFragment extends Fragment {
         }
     }
 
-    // ======================
-    // SAVE VALUES USING PreferenceUtils
-    // ======================
     private void saveValues() {
         try {
             Context ctx = requireContext();
@@ -146,13 +136,11 @@ public class SettingFragment extends Fragment {
             int maxDbm = Math.round(sliderMaxDbm.getValue());
             int greenTh = Math.round(sliderGreenThreshold.getValue());
             int yellowTh = Math.round(sliderYellowThreshold.getValue());
+            int orangeTh = Math.round(sliderOrangeThreshold.getValue());
 
-            final int TOP_LIMIT = -20;     // strongest allowed
-            final int BOTTOM_LIMIT = -150; // weakest allowed
+            final int TOP_LIMIT = -20;
+            final int BOTTOM_LIMIT = -150;
 
-            // -----------------------------
-            // RANGE VALIDATION
-            // -----------------------------
             if (minDbm > TOP_LIMIT || minDbm < BOTTOM_LIMIT) {
                 SnackbarUtils.show(requireView(), "Min dBm must be between -20 and -150");
                 return;
@@ -163,24 +151,23 @@ public class SettingFragment extends Fragment {
                 return;
             }
 
-            // -----------------------------
-            // LOGIC: MIN MUST NOT BE STRONGER THAN MAX
-            // -----------------------------
             if (minDbm > maxDbm) {
                 SnackbarUtils.show(requireView(), "Min dBm cannot be greater (stronger) than Max dBm");
                 return;
             }
 
-            // -----------------------------
-            // VALIDATE THRESHOLDS (0–100)
-            // -----------------------------
             if (greenTh < 1 || greenTh > 100) {
-                SnackbarUtils.show(requireView(), "Green threshold must be 1–100");
+                SnackbarUtils.show(requireView(), "Green threshold must be 1-100");
                 return;
             }
 
             if (yellowTh < 1 || yellowTh > 100) {
-                SnackbarUtils.show(requireView(), "Yellow threshold must be 1–100");
+                SnackbarUtils.show(requireView(), "Yellow threshold must be 1-100");
+                return;
+            }
+
+            if (orangeTh < 1 || orangeTh > 100) {
+                SnackbarUtils.show(requireView(), "Orange threshold must be 1-100");
                 return;
             }
 
@@ -189,19 +176,19 @@ public class SettingFragment extends Fragment {
                 return;
             }
 
-            // -----------------------------
-            // SAVE VALUES
-            // -----------------------------
+            if (yellowTh <= orangeTh) {
+                SnackbarUtils.show(requireView(), "Yellow must be greater than Orange");
+                return;
+            }
+
             PreferenceUtils.setString(ctx, "MIN_DBM", String.valueOf(minDbm));
             PreferenceUtils.setString(ctx, "MAX_DBM", String.valueOf(maxDbm));
             PreferenceUtils.setString(ctx, "GREEN_TH", String.valueOf(greenTh));
             PreferenceUtils.setString(ctx, "YELLOW_TH", String.valueOf(yellowTh));
+            PreferenceUtils.setString(ctx, "ORANGE_TH", String.valueOf(orangeTh));
 
-            SnackbarUtils.show(requireView(), "Settings Saved ✔");
+            SnackbarUtils.show(requireView(), "Settings Saved");
 
-            // -----------------------------
-            // DELAYED BACK PRESS (200 ms)
-            // -----------------------------
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 try {
                     requireActivity().onBackPressed();
@@ -222,6 +209,7 @@ public class SettingFragment extends Fragment {
         sliderMaxDbm.addOnChangeListener(onChangeListener);
         sliderGreenThreshold.addOnChangeListener(onChangeListener);
         sliderYellowThreshold.addOnChangeListener(onChangeListener);
+        sliderOrangeThreshold.addOnChangeListener(onChangeListener);
     }
 
     private void updateValueLabels() {
@@ -230,6 +218,7 @@ public class SettingFragment extends Fragment {
             tvMaxDbmValue.setText(Math.round(sliderMaxDbm.getValue()) + " dBm");
             tvGreenThresholdValue.setText(Math.round(sliderGreenThreshold.getValue()) + "%");
             tvYellowThresholdValue.setText(Math.round(sliderYellowThreshold.getValue()) + "%");
+            tvOrangeThresholdValue.setText(Math.round(sliderOrangeThreshold.getValue()) + "%");
         } catch (Exception ignored) {
         }
     }
@@ -241,6 +230,4 @@ public class SettingFragment extends Fragment {
             return defaultValue;
         }
     }
-
-
 }

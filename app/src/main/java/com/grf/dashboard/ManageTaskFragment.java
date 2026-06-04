@@ -9,213 +9,173 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.google.gson.Gson;
 import com.grf.adapter.TaskAdapter;
-import com.grf.database.TaskDbHelper;
+import com.grf.api.ApiHelper;
+import com.grf.model.TagToBeFind;
 import com.grf.model.Task;
 import com.grf.smarttagmanager.R;
 import com.grf.utils.SnackbarUtils;
-import com.grf.viewmodel.ModuleViewModel;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ManageTaskFragment extends Fragment implements TaskAdapter.Listener {
 
     private RecyclerView rvTasks;
     private TaskAdapter adapter;
     private final List<Task> tasks = new ArrayList<>();
-    private TaskDbHelper taskDbHelper;
-    private ExecutorService exec;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View root = null;
-        try {
-            root = inflater.inflate(R.layout.fragment_manage_task, container, false);
+        View root = inflater.inflate(R.layout.fragment_manage_task, container, false);
 
-            rvTasks = root.findViewById(R.id.rvTasks);
-            exec = Executors.newSingleThreadExecutor();
+        rvTasks = root.findViewById(R.id.rvTasks);
 
-
-            // Option A: let TaskDbHelper create its own SqliteDbHelper (using default DB name/version)
-            taskDbHelper = new TaskDbHelper(requireContext());
-
-            View btnNewTask = root.findViewById(R.id.btnNewTask);
-
-            btnNewTask.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        Navigation.findNavController(v)
-                                .navigate(R.id.action_dashboard_to_newTaskFragment);
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                    }
-                }
-            });
-
-
-            ImageView ivBack = root.findViewById(R.id.ivBack);
-            ivBack.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        if (getActivity() != null) getActivity().onBackPressed();
-                    } catch (Throwable t) {
-                    }
-                }
-            });
-
-            setupRecycler();
-            loadTasks();
-        } catch (Throwable t) {
-            // fallback - return an empty view if something failed
-            if (root == null) {
-                root = new View(getContext());
+        View btnNewTask = root.findViewById(R.id.btnNewTask);
+        btnNewTask.setOnClickListener(v -> {
+            try {
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_dashboard_to_newTaskFragment);
+            } catch (Throwable ignored) {
             }
-        }
+        });
+
+        ImageView ivBack = root.findViewById(R.id.ivBack);
+        ivBack.setOnClickListener(v -> {
+            try {
+                if (getActivity() != null) getActivity().onBackPressed();
+            } catch (Throwable ignored) {
+            }
+        });
+
+        setupRecycler();
+        loadTasksFromApi();
+
         return root;
     }
 
-
-    private void loadTasks() {
-        exec.execute(() -> {
-            try {
-                // get all tasks (blocking off UI thread)
-                List<Task> tasks = taskDbHelper.getTasksList(new TaskDbHelper.TaskFilter()); // empty filter => all
-                requireActivity().runOnUiThread(() -> {
-                    // update RecyclerView / UI with tasks
-                    // e.g. adapter.setItems(tasks);
-                    if (!tasks.isEmpty())
-                        adapter.replaceAll(tasks);
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private void deleteTask(long boxId) {
-        exec.execute(() -> {
-            try {
-                boolean ok = taskDbHelper.deleteTask(boxId);
-
-                requireActivity().runOnUiThread(() -> {
-                    try {
-                        if (ok) {
-                            loadTasks();
-                            SnackbarUtils.show(requireView(), "Task Deleted");
-                        } else
-                            SnackbarUtils.show(requireView(), "Failed To Deleted");
-                    } catch (Throwable t) {
-                        Log.e("TAG", "UI after delete error", t);
-                        SnackbarUtils.show(requireView(), "Failed To Deleted");
-                    }
-                });
-            } catch (Exception e) {
-                Log.e("TAG", "deleteTask error", e);
-                SnackbarUtils.show(requireView(), "Failed To Deleted");
-            }
-        });
-    }
-
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        // shutdown executor (same behavior you had in Activity.onDestroy)
+    private void loadTasksFromApi() {
         try {
-            if (exec != null) {
-                exec.shutdownNow();
-                exec = null;
-            }
-        } catch (Exception e) {
-            Log.e("TAG", "executor shutdown error", e);
-        }
+            ApiHelper.get(requireContext(), "get-pending-task", new ApiHelper.ApiCallback() {
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        if (statusCode != 200) {
+                            SnackbarUtils.show(requireView(), "HTTP Error: " + statusCode);
+                            return;
+                        }
 
-        // optional: release DB helper resources if you added a release method
-        // (your TaskDbHelper doesn't need explicit close since it opens/closes each operation)
-        taskDbHelper = null;
+                        JSONObject json = new JSONObject(response);
+                        boolean success = json.optBoolean("success", false);
+                        int apiStatusCode = json.optInt("statusCode", 0);
+                        if (!success || apiStatusCode != 200) {
+                            SnackbarUtils.show(requireView(), json.optString("message", "Failed to load tasks"));
+                            return;
+                        }
+
+                        JSONArray dataArray = json.optJSONArray("data");
+                        List<Task> fresh = new ArrayList<>();
+
+                        if (dataArray != null) {
+                            for (int i = 0; i < dataArray.length(); i++) {
+                                JSONObject obj = dataArray.optJSONObject(i);
+                                if (obj == null) continue;
+
+                                long id = obj.optLong("id", 0);
+                                String title = obj.optString("name", "");
+                                String dateTime = obj.optString("created_at", "");
+
+                                JSONArray trays = obj.optJSONArray("trays");
+                                List<TagToBeFind> trayList = new ArrayList<>();
+                                if (trays != null) {
+                                    for (int j = 0; j < trays.length(); j++) {
+                                        JSONObject trayObj = trays.optJSONObject(j);
+                                        if (trayObj == null) continue;
+
+                                        String trayId = trayObj.optString("tray_id", "");
+                                        String rfId = trayObj.optString("rf_id", "");
+                                        String status = trayObj.optString("status_name", "");
+                                        String findingTime = trayObj.optString("finding_time", "");
+                                        String zone = trayObj.optString("zone_name", "");
+
+                                        trayList.add(new TagToBeFind(trayId, rfId, status, findingTime, zone));
+                                    }
+                                }
+
+                                int tagCount = trayList.size();
+                                fresh.add(new Task(id, title, tagCount, "", 0, 0.0, "", "", 0, 0, dateTime, trayList));
+                            }
+                        }
+
+                        Collections.sort(fresh, (t1, t2) -> {
+                            String d1 = t1 != null ? t1.getDateTime() : "";
+                            String d2 = t2 != null ? t2.getDateTime() : "";
+                            int byDate = d2.compareToIgnoreCase(d1); // latest created_at first
+                            if (byDate != 0) return byDate;
+                            long id1 = t1 != null ? t1.getId() : 0L;
+                            long id2 = t2 != null ? t2.getId() : 0L;
+                            return Long.compare(id2, id1); // fallback: highest id first
+                        });
+
+                        tasks.clear();
+                        tasks.addAll(fresh);
+                        adapter.replaceAll(tasks);
+
+                    } catch (Exception e) {
+                        SnackbarUtils.show(requireView(), "Failed to parse tasks");
+                    }
+                }
+
+                @Override
+                public void onError(int statusCode, String error) {
+                    try {
+                        SnackbarUtils.show(requireView(), statusCode == 401 ? "Unauthorized" : error);
+                    } catch (Exception ignored) {
+                    }
+                }
+            });
+        } catch (Exception e) {
+            SnackbarUtils.show(requireView(), "Failed to load task list");
+        }
     }
 
     private void setupRecycler() {
-        try {
-            adapter = new TaskAdapter(tasks, this, 0);
-            rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
-            rvTasks.setAdapter(adapter);
-        } catch (Throwable t) {
-            // ignore or log
-        }
+        adapter = new TaskAdapter(tasks, this, 1);
+        rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvTasks.setAdapter(adapter);
     }
 
-    private void loadSampleDatas() {
-        try {
-            tasks.clear();
-
-            tasks.add(new Task(0, "Tote find", 9, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(), new ArrayList<>()));
-            tasks.add(new Task(0, "Tray Find", 6, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(),new ArrayList<>()));
-            tasks.add(new Task(0, "Task_2025-12-03_15:45:58", 3, "0", 0, 0, "0", "", 0, 0, ModuleViewModel.getDateTime(),new ArrayList<>()));
-
-
-            adapter.replaceAll(tasks);
-        } catch (Throwable t) {
-            // fallback: leave list empty
-        }
-    }
-
-    // Adapter listener callbacks
     @Override
     public void onEdit(Task task, int position, int moduleType) {
-        try {
-            // demo: append " (edited)" to title
-
-            Task updated = new Task(
-                    task.getId(),
-                    task.getTitle() + " (edited)",
-                    task.getTagCount(),
-                    "0",       // tagId (String)
-                    0,       // boxId FIXED (String)
-                    0.0,       // rssValue FIXED (double)
-                    "0",       // zoneId FIXED (String)
-                    "",        // moduleId
-                    0,
-                    0, ModuleViewModel.getDateTime(),new ArrayList<>()
-            );
-            SnackbarUtils.show(requireView(), "Permission denied");
-
-            // adapter.updateAt(position, updated);
-        } catch (Throwable t) {
-        }
+        SnackbarUtils.show(requireView(), "Edit is not enabled here");
     }
 
     @Override
     public void onDelete(Task task, int position, int moduleType) {
-        try {
-            deleteTask(task.getBoxId());
-            // immediate delete for demo
-            adapter.removeAt(position);
-        } catch (Throwable t) {
-        }
+        SnackbarUtils.show(requireView(), "Delete is not enabled here");
     }
 
     @Override
-    public void onItemClick(Task task, int position, int Moduletype) {
+    public void onItemClick(Task task, int position, int moduleType) {
         try {
-            // handle item click (navigate / show details)
-        } catch (Throwable t) {
+            Bundle b = new Bundle();
+            b.putString("taskData", new Gson().toJson(task));
+            Navigation.findNavController(requireView()).navigate(R.id.action_manageTask_to_viewTaskDetailsFragment, b);
+        } catch (Exception e) {
+            SnackbarUtils.show(requireView(), "Unable to open task details");
         }
     }
 }
