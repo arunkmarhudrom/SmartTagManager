@@ -293,6 +293,17 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
     // add this field to your Fragment (or enclosing class)
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Map<String, PendingTag> pendingUpdates = new HashMap<>();
+    private final Map<String, Long> tagLastSeenTimes = new HashMap<>();
+    private static final long TAG_NOT_SEEN_TIMEOUT_MS = 2_000;
+    private static final long STALE_TAG_CHECK_INTERVAL_MS = 500;
+    private final Runnable staleTagCleanup = new Runnable() {
+        @Override
+        public void run() {
+            if (!isScanning) return;
+            removeTagsNotSeenRecently();
+            mainHandler.postDelayed(this, STALE_TAG_CHECK_INTERVAL_MS);
+        }
+    };
 
     private long lastUpdateTime = 0;
     private static final long UPDATE_INTERVAL = 10; // ms throttle
@@ -378,6 +389,8 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
             if (isScanning) return;
             // mark scanning started
             isScanning = true;
+            mainHandler.removeCallbacks(staleTagCleanup);
+            mainHandler.postDelayed(staleTagCleanup, STALE_TAG_CHECK_INTERVAL_MS);
             if (App.ReaderType == 1)
                 uhfManagerHelper.startInventory();
             else
@@ -393,6 +406,7 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
         try {
             // mark stopped first so runnable won't reschedule itself
             isScanning = false;
+            mainHandler.removeCallbacks(staleTagCleanup);
             if (App.ReaderType == 1)
                 uhfManagerHelper.stopInventory();
             else
@@ -542,11 +556,41 @@ public class ScanFragment extends Fragment implements OnKeyPressHandler {
             PendingTag updated = new PendingTag(tagId, 0, strengthPercent, trayId, "", rssi);
 
             synchronized (pendingUpdates) {
+                tagLastSeenTimes.put(tagId, android.os.SystemClock.elapsedRealtime());
                 pendingUpdates.put(tagId, updated); // 🔥 overwrite = no spam
             }
 
             scheduleUiFlush();
 
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private void removeTagsNotSeenRecently() {
+        try {
+            long cutoff = android.os.SystemClock.elapsedRealtime() - TAG_NOT_SEEN_TIMEOUT_MS;
+            boolean changed = false;
+
+            synchronized (pendingUpdates) {
+                for (int i = pendingList.size() - 1; i >= 0; i--) {
+                    PendingTag tag = pendingList.get(i);
+                    Long lastSeen = tagLastSeenTimes.get(tag.getTagId());
+                    if (lastSeen == null || lastSeen < cutoff) {
+                        pendingList.remove(i);
+                        tagLastSeenTimes.remove(tag.getTagId());
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed) {
+                rebuildIndexMap();
+                if (adapter != null) adapter.notifyDataSetChanged();
+                if (tvSectionTitle != null) {
+                    tvSectionTitle.setText("Nearby Tag (" + pendingList.size() + ")");
+                }
+            }
         } catch (Throwable t) {
             t.printStackTrace();
         }
